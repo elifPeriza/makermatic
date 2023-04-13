@@ -6,17 +6,20 @@ module.exports = {
     "./app/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
+    colors: {
+      white: "#F5F5F5",
+      brightgreen: "#98FB98",
+      softgreen: "#A5E1A5",
+      lightblue: "#A6B1E1",
+      blue: "#697CCC",
+      darkblue: "#242A59",
+      fontblue: "#9DAFFF",
+    },
     extend: {
       fontFamily: {
         sans: ["var(--font-roboto)"],
         mono: ["var(--font-roboto-mono)"],
         logo: ["var(--font-vt323)"],
-      },
-
-      backgroundImage: {
-        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "gradient-conic":
-          "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
     },
   },
