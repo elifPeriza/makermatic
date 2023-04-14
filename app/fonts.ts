@@ -1,19 +1,15 @@
-import { Roboto, Roboto_Mono, VT323 } from "next/font/google";
-
-export const vt323 = VT323({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-vt323",
-});
+import { Roboto, Roboto_Mono } from "next/font/google";
 
 export const roboto = Roboto({
   subsets: ["latin"],
   weight: ["400", "700"],
   variable: "--font-roboto",
+  display: "auto",
 });
 
 export const roboto_mono = Roboto_Mono({
   subsets: ["latin"],
   weight: "700",
   variable: "--font-roboto-mono",
+  display: "auto",
 });
