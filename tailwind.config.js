@@ -1,5 +1,24 @@
 /** @type {import('tailwindcss').Config} */
+let plugin = require("tailwindcss/plugin");
+
 module.exports = {
+  plugins: [
+    plugin(function ({ matchVariant }) {
+      matchVariant(
+        "nth",
+        (value) => {
+          return `&:nth-child(${value})`;
+        },
+        {
+          values: {
+            DEFAULT: "n", // Default value for `nth:`
+            odd: "2n+1",
+            even: "2n",
+          },
+        }
+      );
+    }),
+  ],
   content: [
     "./pages/**/*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx}",
@@ -15,6 +34,7 @@ module.exports = {
       darkblue: "#242A59",
       fontblue: "#9DAFFF",
     },
+
     extend: {
       fontFamily: {
         sans: ["var(--font-roboto)"],
@@ -23,5 +43,4 @@ module.exports = {
       },
     },
   },
-  plugins: [],
 };
