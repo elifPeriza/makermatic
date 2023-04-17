@@ -1,4 +1,7 @@
 import { roboto_mono, roboto } from "../fonts";
+import Button from "./Button";
+import Emoji from "./Emoji";
+import Tag from "./Tag";
 
 const projects = [
   "arched garden shelf",
@@ -10,18 +13,40 @@ const projects = [
   "something else",
 ];
 
+const tags = [
+  { text: "all", symbol: "✨" },
+  { text: "in progress", symbol: "🔨", label: "hammer" },
+  { text: "done", symbol: "👏", label: "clapping hands" },
+];
+
 export default function ProjectList() {
   return (
     <>
       {
-        <div className="mt-6">
-          <h2
-            className={`${roboto.variable} font-sans text-xl font-semibold text-white`}
-          >
-            my projects
-          </h2>
+        <div className="mt-10">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-row justify-between">
+              <h2
+                className={`${roboto.variable} font-sans text-lg font-semibold text-white`}
+              >
+                my projects
+              </h2>
+              <div className="sm:hidden">
+                <Button variant="primary">+ new project</Button>
+              </div>
+            </div>
 
-          <div className="mr-auto mt-3 flex max-w-3xl flex-wrap-reverse justify-center">
+            <div className="flex flex-wrap gap-3 ">
+              {tags.map((tag) => (
+                <Tag key={tag.text}>
+                  {tag.text} <Emoji label={tag.label} symbol={tag.symbol} />
+                  {/* {tag.text} {tag.symbol && tag.symbol} */}
+                </Tag>
+              ))}
+            </div>
+          </div>
+
+          <div className="mr-auto mt-10 flex max-w-3xl flex-wrap-reverse justify-center">
             {projects.map((project, i) => {
               return (
                 <div
