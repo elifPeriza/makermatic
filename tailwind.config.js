@@ -34,7 +34,10 @@ module.exports = {
       darkblue: "#242A59",
       fontblue: "#9DAFFF",
     },
-
+    screens: {
+      mobile: { max: "549px" },
+      sm: "550px",
+    },
     extend: {
       fontFamily: {
         sans: ["var(--font-roboto)"],
