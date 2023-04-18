@@ -2,6 +2,7 @@ import { roboto_mono, roboto } from "../fonts";
 import Button from "./Button";
 import Emoji from "./Emoji";
 import Tag from "./Tag";
+import TaskSuggestion from "./TaskSuggestion";
 
 const projects = [
   "arched garden shelf",
@@ -22,8 +23,12 @@ const tags = [
 export default function ProjectList() {
   return (
     <>
-      {
-        <div className="mt-10">
+      <div className=" mt-8 md:hidden">
+        <TaskSuggestion />
+      </div>
+
+      <div className=" mt-10 md:flex md:flex-row md:justify-between md:gap-10 ">
+        <div className="flex flex-col">
           <div className="flex flex-col gap-6">
             <div className="flex flex-row justify-between">
               <h2
@@ -31,7 +36,7 @@ export default function ProjectList() {
               >
                 my projects
               </h2>
-              <div className="sm:hidden">
+              <div className="md:hidden">
                 <Button variant="primary">+ new project</Button>
               </div>
             </div>
@@ -46,7 +51,7 @@ export default function ProjectList() {
             </div>
           </div>
 
-          <div className="mr-auto mt-10 flex max-w-3xl flex-wrap-reverse justify-center">
+          <div className="mr-auto mt-10 flex max-w-2xl flex-wrap-reverse justify-center">
             {projects.map((project, i) => {
               return (
                 <div
@@ -65,7 +70,10 @@ export default function ProjectList() {
             })}
           </div>
         </div>
-      }
+        <div className="mobile:hidden sm:hidden md:block">
+          <TaskSuggestion />
+        </div>
+      </div>
     </>
   );
 }

@@ -19,7 +19,7 @@ export default function Header() {
           <div className="rounded-[5px] bg-lightblue"></div>
           <div className="rounded-[5px] bg-blue "></div>
         </div>
-        <div className="ml-auto mobile:hidden">
+        <div className="ml-auto mobile:hidden sm:hidden md:block">
           <Button variant="primary">+ new project</Button>
         </div>
       </div>
