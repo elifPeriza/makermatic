@@ -38,6 +38,7 @@ module.exports = {
     screens: {
       mobile: { max: "549px" },
       sm: "550px",
+      md: "800px",
     },
     extend: {
       fontFamily: {
