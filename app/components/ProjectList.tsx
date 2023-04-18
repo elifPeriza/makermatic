@@ -4,15 +4,29 @@ import Emoji from "./Emoji";
 import Tag from "./Tag";
 import TaskSuggestion from "./TaskSuggestion";
 
-const projects = [
-  "arched garden shelf",
-  "japanese inspired fabric art what ",
-  "wood block art",
-  "fabric lamp shade",
-  "rustic wooden bench",
-  "abstract canvas art",
-  "something else",
-];
+type todo = {
+  text: string;
+  created_at: string;
+  completed_at: string | undefined;
+  isCompleted: boolean;
+};
+
+type Project = {
+  id: number;
+  title: string;
+  description: string | undefined;
+  created_at: string;
+  completed_at: string | undefined;
+  notes: string | undefined;
+  tutorials: string | undefined;
+  materials: string[];
+  todos: todo[];
+  isCompleted: boolean;
+};
+
+type ProjectListProps = {
+  projects: Project[];
+};
 
 const tags = [
   { text: "all", symbol: "✨" },
@@ -20,7 +34,7 @@ const tags = [
   { text: "done", symbol: "👏", label: "clapping hands" },
 ];
 
-export default function ProjectList() {
+export default function ProjectList({ projects }: ProjectListProps) {
   return (
     <>
       <div className=" mt-8 md:hidden">
@@ -45,7 +59,6 @@ export default function ProjectList() {
               {tags.map((tag) => (
                 <Tag key={tag.text}>
                   {tag.text} <Emoji label={tag.label} symbol={tag.symbol} />
-                  {/* {tag.text} {tag.symbol && tag.symbol} */}
                 </Tag>
               ))}
             </div>
@@ -55,7 +68,7 @@ export default function ProjectList() {
             {projects.map((project, i) => {
               return (
                 <div
-                  key={project}
+                  key={project.id}
                   className={`group flex
                        h-24 min-w-[140px] cursor-pointer
                    flex-col justify-center rounded-[10px] border border-lightblue bg-darkblue hover:bg-softgreen mobile:w-[calc(100%/2)] mobile:nth-[3n+3]:mx-10 sm:w-[calc(100%/3)] sm:nth-[5n+4]:ml-10 sm:nth-[5n+5]:mr-10   `}
@@ -63,7 +76,7 @@ export default function ProjectList() {
                   <p
                     className={`${roboto_mono.variable} p-3 text-center font-mono text-fontblue group-hover:text-darkblue `}
                   >
-                    {project}
+                    {project.title}
                   </p>
                 </div>
               );
