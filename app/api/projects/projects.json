@@ -1,0 +1,77 @@
+[
+  {
+    "id": 1,
+    "title": "Arched Garden Shelf",
+    "description": "",
+    "created_at": "2023-04-11 14:30:00",
+    "completed_at": "",
+    "notes": "",
+    "tutorials": "",
+    "materials": ["plywood", "drywall"],
+    "todos": [
+      {
+        "text": "cut plywood",
+        "created_at": "2023-04-11 14:30:00",
+        "completed_at": "",
+        "isCompleted": false
+      },
+      {
+        "text": "buy jigsaw",
+        "created_at": "2023-04-11 14:35:00",
+        "completed_at": "2023-04-11 18:30:00",
+        "isCompleted": true
+      }
+    ],
+    "isCompleted": false
+  },
+  {
+    "id": 2,
+    "title": "Rustic Garden Dining Table",
+    "description": "",
+    "created_at": "2023-04-11 14:30:00",
+    "completed_at": "",
+    "notes": "",
+    "tutorials": "",
+    "materials": ["plywood", "drywall"],
+    "todos": [
+      {
+        "text": "cut plywood",
+        "created_at": "2023-04-11 14:30:00",
+        "completed_at": "",
+        "isCompleted": false
+      },
+      {
+        "text": "buy jigsaw",
+        "created_at": "2023-04-11 14:35:00",
+        "completed_at": "2023-04-11 18:30:00",
+        "isCompleted": true
+      }
+    ],
+    "isCompleted": true
+  },
+  {
+    "id": 3,
+    "title": "Japanese inspired Fabric Art",
+    "description": "",
+    "created_at": "2023-04-11 14:30:00",
+    "completed_at": "",
+    "notes": "",
+    "tutorials": "",
+    "materials": ["indigo linen fabric", "beige linen fabric"],
+    "todos": [
+      {
+        "text": "cut fabric",
+        "created_at": "2023-04-11 14:30:00",
+        "completed_at": "",
+        "isCompleted": false
+      },
+      {
+        "text": "buy fabric",
+        "created_at": "2023-04-11 14:35:00",
+        "completed_at": "2023-04-11 18:30:00",
+        "isCompleted": true
+      }
+    ],
+    "isCompleted": false
+  }
+]
