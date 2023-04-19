@@ -7,7 +7,7 @@ import Emoji from "./Emoji";
 import Tag from "./Tag";
 import TaskSuggestion from "./TaskSuggestion";
 
-import { TagLabel, Project } from "../types";
+import { TagLabel, Project } from "../api/projects/types";
 
 type ProjectListProps = {
   projects: Project[];

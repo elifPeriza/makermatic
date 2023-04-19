@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { roboto_mono } from "../fonts";
-import { TagLabel, Project } from "../types";
+import { TagLabel, Project } from "../api/projects/types";
 
 type HandleFilterChange = (projects: Project[], tagText: TagLabel) => void;
 
@@ -12,21 +12,19 @@ type TagProps = {
   isSelected: boolean;
 };
 
+const filterProjects = (tagLabel: TagLabel, projects: Project[]) => {
+  if (tagLabel === "all") return projects;
+  return projects.filter(({ isCompleted }) =>
+    tagLabel === "done" ? isCompleted : !isCompleted
+  );
+};
+
 const handleTagSelect = (
   tagLabel: TagLabel,
   projects: Project[],
   handleFilterChange: HandleFilterChange
 ) => {
-  let filteredProjects = projects;
-  if (tagLabel === "in progress") {
-    filteredProjects = projects.filter(
-      (project: Project) => project.isCompleted === false
-    );
-  } else if (tagLabel === "done") {
-    filteredProjects = projects.filter(
-      (project: Project) => project.isCompleted === true
-    );
-  }
+  const filteredProjects = filterProjects(tagLabel, projects);
   return handleFilterChange(filteredProjects, tagLabel);
 };
 
@@ -38,6 +36,7 @@ export default function Tag({
   isSelected,
 }: TagProps) {
   const handleClick = () => {
+    if (isSelected) return;
     handleTagSelect(tagLabel, projects, handleFilterChange);
   };
   return (
