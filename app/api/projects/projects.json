@@ -19,7 +19,13 @@
       {
         "task": "buy jigsaw",
         "createdAt": "2023-04-11 ",
-        "completedAt": "2023-04-11 ",
+        "completedAt": "2023-04-14 ",
+        "isCompleted": true
+      },
+      {
+        "task": "research jigsaw type",
+        "createdAt": "2023-04-11 ",
+        "completedAt": "2023-04-12 ",
         "isCompleted": true
       }
     ],
@@ -40,7 +46,7 @@
         "task": "decide on wood arrangement",
         "createdAt": "2023-04-15",
         "completedAt": "2023-04-17",
-        "isCompleted": false
+        "isCompleted": true
       },
       {
         "task": "cut wood",
