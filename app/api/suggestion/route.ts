@@ -15,15 +15,6 @@ Completed tasks:
 Open tasks:
 - Take measurements for materials, created on 2023-04-11
 - Cut plywood, created on 2023-04-11
-
-Project: wood art
-Materials at hand: wood
-Missing materials: wood paint
-Completed tasks:
-- Decide on wood arrangement, completed on 2023-04-15
-Open tasks:
-- Cut wood, created on 2023-04-15
-- Paint wood cuts, created on 2023-04-15
  */
 
 type ProjectWithTasks = {
@@ -34,6 +25,22 @@ type ProjectWithTasks = {
 type SingleTask = {
   projectID: number;
   taskDate: string;
+};
+
+// function to transform project tasks to a string for prompt
+const createTasksString = (todos: Todo[], taskStatus: "open" | "completed") => {
+  const tasks = todos
+    .filter(({ isCompleted }) =>
+      taskStatus === "completed" ? isCompleted === true : isCompleted === false
+    )
+    .map(({ task, isCompleted, completedAt, createdAt }) => {
+      return `- ${task}, ${
+        isCompleted ? "completed on " + completedAt : "created on " + createdAt
+      }`;
+    });
+  return `\n${
+    taskStatus === "open" ? "Open" : "Completed"
+  } tasks:\n${tasks.join("\n")}`;
 };
 
 const generateMostRecentTasks = (
@@ -94,6 +101,10 @@ const generateMostRecentTasks = (
   );
 
 const calculateMostRecentProject = (projects: Project[]) => {
+  // early return for when there are no active projects
+  if (projects.length === 0 || projects === undefined)
+    return `No active projects at the moment`;
+
   const projectsWithTasks = projects
     .filter(({ isCompleted }) => isCompleted === false)
     .map(({ id: projectID, todos }) => {
@@ -126,8 +137,26 @@ const calculateMostRecentProject = (projects: Project[]) => {
 
   const mostRecentProject = projects.find(
     (project) => project.id === projectIDWithMostRecentTasks
-  );
+  ) as Project; // type assertion as we know that at this point the calculcated projectID does exist & we have an early return
   return mostRecentProject;
 };
 
-console.log(calculateMostRecentProject(projects));
+const mostRecentProject = calculateMostRecentProject(projects);
+
+const generateProjectDataString = (
+  project: Project | "No active projects at the moment"
+) => {
+  if (project === "No active projects at the moment") return project;
+  return `Project: ${
+    project.title
+  }\nMaterials at hand: ${project.materialsAtHand.join(
+    ", "
+  )}\nMissing materials: ${project.missingMaterials.join(
+    ", "
+  )}${createTasksString(project.todos, "completed")}${createTasksString(
+    project.todos,
+    "open"
+  )}`;
+};
+
+console.log(generateProjectDataString(mostRecentProject));
