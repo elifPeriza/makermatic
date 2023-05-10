@@ -149,9 +149,14 @@ const generateProjectDataString = (
 console.log(generateProjectDataString(mostRecentProject));
 
 export async function GET() {
-  const completion = await openai.createChatCompletion({
-    model: "gpt-3.5-turbo",
-    messages: [{ role: "user", content: "Hello world" }],
-  });
-  return NextResponse.json(completion.data.choices[0].message);
+ try{
+    const completion = await openai.createChatCompletion({
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: "Hello world" }],
+      });
+      return NextResponse.json(completion.data.choices[0].message);
+ } catch(error) {
+    console.error(error)
+ }
+  
 }
