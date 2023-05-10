@@ -2,20 +2,7 @@ import projects from "../projects/projects.json";
 import { NextResponse } from "next/server";
 import { Project } from "../projects/types";
 import { Todo } from "../projects/types";
-
-/* 
-Project data string for GPT prompt: 
-
-Project: Arched Garden Shelf
-Materials at hand: drywall, oak shelves  
-Missing materials: plywood
-Completed tasks:
-- Buy jigsaw, completed on 2023-4-14
-- Research jigsaw type, completed on 2023-04-13
-Open tasks:
-- Take measurements for materials, created on 2023-04-11
-- Cut plywood, created on 2023-04-11
- */
+import openai from "@/app/utils/openai";
 
 type ProjectWithTasks = {
   projectID: number;
@@ -160,3 +147,11 @@ const generateProjectDataString = (
 };
 
 console.log(generateProjectDataString(mostRecentProject));
+
+export async function GET() {
+  const completion = await openai.createChatCompletion({
+    model: "gpt-3.5-turbo",
+    messages: [{ role: "user", content: "Hello world" }],
+  });
+  return NextResponse.json(completion.data.choices[0].message);
+}
