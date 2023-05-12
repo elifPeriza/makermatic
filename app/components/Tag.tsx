@@ -1,43 +1,25 @@
 import { ReactNode } from "react";
 import { roboto_mono } from "../fonts";
-import { TagLabel, Project } from "../api/projects/types";
+import { TagLabel } from "../api/projects/types";
 
-type HandleFilterChange = (projects: Project[], tagText: TagLabel) => void;
+type HandleFilterChange = (tagText: TagLabel) => void;
 
 type TagProps = {
   children: ReactNode;
-  handleFilterChange: HandleFilterChange;
+  onTagSelect: HandleFilterChange;
   tagLabel: TagLabel;
-  projects: Project[];
   isSelected: boolean;
-};
-
-const filterProjects = (tagLabel: TagLabel, projects: Project[]) => {
-  if (tagLabel === "all") return projects;
-  return projects.filter(({ isCompleted }) =>
-    tagLabel === "done" ? isCompleted : !isCompleted
-  );
-};
-
-const handleTagSelect = (
-  tagLabel: TagLabel,
-  projects: Project[],
-  handleFilterChange: HandleFilterChange
-) => {
-  const filteredProjects = filterProjects(tagLabel, projects);
-  return handleFilterChange(filteredProjects, tagLabel);
 };
 
 export default function Tag({
   children,
   tagLabel,
-  handleFilterChange,
-  projects,
+  onTagSelect,
   isSelected,
 }: TagProps) {
   const handleClick = () => {
     if (isSelected) return;
-    handleTagSelect(tagLabel, projects, handleFilterChange);
+    onTagSelect(tagLabel);
   };
   return (
     <button
