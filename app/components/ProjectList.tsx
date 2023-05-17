@@ -35,10 +35,8 @@ export default function ProjectList({ projects }: ProjectListProps) {
   const filteredProjects = filterProjects(selectedTag, projects);
 
   const handleFilterChange = (tagLabel: TagLabel) => {
-    console.log({ tagLabel });
     setSelectedTag(tagLabel);
   };
-  console.log(selectedTag, filteredProjects);
 
   return (
     <>
