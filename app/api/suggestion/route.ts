@@ -3,6 +3,10 @@ import { NextResponse } from "next/server";
 import { Project } from "../projects/types";
 import { Todo } from "../projects/types";
 import openai from "@/app/utils/openai";
+import {
+  promptMessageTimeEstimation,
+  promptMessageTaskSuggestion,
+} from "@/app/utils/prompts";
 
 type ProjectWithTasks = {
   projectID: number;
@@ -132,27 +136,13 @@ const calculateMostRecentProject = (projects: Project[]) => {
 
 const mostRecentProject = calculateMostRecentProject(projects);
 
-const generatePrompt = (
+const generatePromptTaskSuggestion = (
   project: Project | "No active projects at the moment"
 ) => {
-  const promptMessage = `You are a task assistant. The user will give you the status of his/her recently most active project and you will suggest a single task for todays date and calculate the approximate time the task will take.
-  If there are missing materials required for a task, then you should only suggest to buy that missing material as a task for this day. Do not ever suggest tasks that require any missing material. Do not suggest more than one task.
-  
-  Calculate the estimated time generously as the target audience are DIY-Beginners and consider all steps the tasks entails (for example driving to the hardware store). Use an enthusiastic and encouraging language and appreciate the users recent accomplishments. Write from the 1st person perspective.
-  
-  If there are no active projects at the moment, instead of the task suggestion ask some questions that will inspire the user to create diy ideas. Use the book "The Art of Noticing" from Rob Walker as a reference but do not ever mention the book explicitly. Do not ever use sentences that incentivise the user to ask you further questions.
-  
-  You always respond in the following structure:
-  
-  Task Suggestion:
-  Hey [suggestion]
-  
-  Estimated time: [x] [hour(s)] [y] [minute(s)]`;
-
   if (project === "No active projects at the moment") {
-    return promptMessage + project;
+    return promptMessageTaskSuggestion + project;
   } else {
-    return ` ${promptMessage}\n\nProject: ${
+    return ` ${promptMessageTaskSuggestion}\n\nProject: ${
       project.title
     }\nMaterials at hand: ${project.materialsAtHand.join(
       ", "
@@ -165,16 +155,39 @@ const generatePrompt = (
   }
 };
 
-export async function GET() {
-  try {
-    const completion = await openai.createChatCompletion({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: generatePrompt(mostRecentProject) }],
-      max_tokens: 150,
-    });
+export async function getOpenAIResponse(
+  prompt: string,
+  maxToken: number,
+  temperature: number
+) {
+  const completion = await openai.createChatCompletion({
+    model: "gpt-3.5-turbo",
+    messages: [{ role: "user", content: prompt }],
+    max_tokens: maxToken,
+    temperature: temperature,
+  });
 
-    return NextResponse.json(completion.data.choices[0].message);
-  } catch (error) {
-    console.error(error);
-  }
+  return completion.data.choices[0].message?.content;
+}
+
+export async function GET() {
+  const taskSuggestion = await getOpenAIResponse(
+    generatePromptTaskSuggestion(mostRecentProject),
+    150,
+    0.6
+  ).catch(() => null);
+  if (!taskSuggestion)
+    return NextResponse.json(
+      { message: "Failed to generate task suggestion" },
+      { status: 500 }
+    );
+
+  const promptTimeEstimation = promptMessageTimeEstimation + taskSuggestion;
+  const estimatedTime = await getOpenAIResponse(
+    promptTimeEstimation,
+    10,
+    0.3
+  ).catch(() => null);
+
+  return NextResponse.json({ taskSuggestion, estimatedTime });
 }
