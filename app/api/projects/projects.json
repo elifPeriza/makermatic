@@ -3,22 +3,29 @@
     "id": 1,
     "title": "Arched Garden Shelf",
     "description": "",
-    "created_at": "2023-04-11 14:30:00",
-    "completed_at": "",
+    "createdAt": "2023-04-11 ",
+    "completedAt": "",
     "notes": "",
     "tutorials": "",
-    "materials": ["plywood", "drywall"],
+    "materialsAtHand": ["drywall", "oak wood for shelves"],
+    "missingMaterials": ["plywood"],
     "todos": [
       {
-        "text": "cut plywood",
-        "created_at": "2023-04-11 14:30:00",
-        "completed_at": "",
+        "task": "cut plywood",
+        "createdAt": "2023-04-11 ",
+        "completedAt": "",
         "isCompleted": false
       },
       {
-        "text": "buy jigsaw",
-        "created_at": "2023-04-11 14:35:00",
-        "completed_at": "2023-04-11 18:30:00",
+        "task": "buy jigsaw",
+        "createdAt": "2023-04-11 ",
+        "completedAt": "2023-04-14 ",
+        "isCompleted": true
+      },
+      {
+        "task": "research jigsaw type",
+        "createdAt": "2023-04-11 ",
+        "completedAt": "2023-04-12 ",
         "isCompleted": true
       }
     ],
@@ -26,49 +33,57 @@
   },
   {
     "id": 2,
-    "title": "Rustic Garden Dining Table",
+    "title": "Wood Art",
     "description": "",
-    "created_at": "2023-04-11 14:30:00",
-    "completed_at": "",
+    "createdAt": "2023-04-15 ",
+    "completedAt": "",
     "notes": "",
     "tutorials": "",
-    "materials": ["plywood", "drywall"],
+    "materialsAtHand": ["wood"],
+    "missingMaterials": ["wood paint"],
     "todos": [
       {
-        "text": "cut plywood",
-        "created_at": "2023-04-11 14:30:00",
-        "completed_at": "",
+        "task": "decide on wood arrangement",
+        "createdAt": "2023-04-15",
+        "completedAt": "2023-04-17",
+        "isCompleted": true
+      },
+      {
+        "task": "cut wood",
+        "createdAt": "2023-04-15",
+        "completedAt": "",
         "isCompleted": false
       },
       {
-        "text": "buy jigsaw",
-        "created_at": "2023-04-11 14:35:00",
-        "completed_at": "2023-04-11 18:30:00",
-        "isCompleted": true
+        "task": "paint wood cuts",
+        "createdAt": "2023-04-15",
+        "completedAt": "",
+        "isCompleted": false
       }
     ],
-    "isCompleted": true
+    "isCompleted": false
   },
   {
     "id": 3,
     "title": "Japanese inspired Fabric Art",
     "description": "",
-    "created_at": "2023-04-11 14:30:00",
-    "completed_at": "",
+    "createdAt": "2023-04-20",
+    "completedAt": "",
     "notes": "",
     "tutorials": "",
-    "materials": ["indigo linen fabric", "beige linen fabric"],
+    "materialsAtHand": ["indigo linen fabric", "beige linen fabric"],
+    "missingMaterials": ["timber for art frame"],
     "todos": [
       {
-        "text": "cut fabric",
-        "created_at": "2023-04-11 14:30:00",
-        "completed_at": "",
+        "task": "cut fabric",
+        "createdAt": "2023-04-20 ",
+        "completedAt": "",
         "isCompleted": false
       },
       {
-        "text": "buy fabric",
-        "created_at": "2023-04-11 14:35:00",
-        "completed_at": "2023-04-11 18:30:00",
+        "task": "buy fabric",
+        "createdAt": "2023-04-20 ",
+        "completedAt": "2023-04-20 ",
         "isCompleted": true
       }
     ],
