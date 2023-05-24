@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate": "drizzle-kit generate:sqlite --out db/migrations  --schema db/schema.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.1.6",
