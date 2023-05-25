@@ -68,7 +68,7 @@ export default function ProjectList({ projects }: ProjectListProps) {
                 <p
                   className={`${roboto_mono.variable} p-3 text-center font-mono text-fontblue group-hover:text-darkblue `}
                 >
-                  {project.title}
+                  {project.name}
                 </p>
               </div>
             );

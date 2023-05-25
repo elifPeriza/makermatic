@@ -2,16 +2,16 @@ export type TagLabel = "all" | "in progress" | "done";
 
 export type Project = {
   id: number;
-  title: string;
-  description: string | undefined;
-  createdAt: string;
-  completedAt: string | undefined;
-  notes: string | undefined;
-  tutorials: string | undefined;
-  materialsAtHand: string[];
-  missingMaterials: string[];
-  todos: Todo[];
-  isCompleted: boolean;
+  name: string;
+  description: string | null;
+  createdAt: string | null;
+  completedAt: string | null;
+  notes: string | null;
+  tutorials?: string | null;
+  materialsAtHand?: string[];
+  missingMaterials?: string[];
+  todos?: Todo[];
+  isCompleted: boolean | number;
 };
 
 export type Todo = {

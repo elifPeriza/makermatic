@@ -3,13 +3,15 @@ import ProjectList from "./components/ProjectList";
 import TaskSuggestion from "./components/TaskSuggestion";
 import { roboto } from "./fonts";
 import Button from "./components/Button";
+import { db } from "@/db/drizzle";
+import { projects } from "@/db/schema";
+
+export const revalidate = 60;
 
 async function getProjects() {
-  const response = await fetch("http://localhost:3000/api/projects", {
-    next: { revalidate: 1 },
-  });
-  const projects = await response.json();
-  return projects;
+  const allProjects = await db.select().from(projects).all();
+
+  return allProjects;
 }
 
 export default async function Home() {
