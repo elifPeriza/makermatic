@@ -19,16 +19,25 @@ type SingleTask = {
 };
 
 // function to transform project tasks to a string for prompt
-const createTasksString = (todos: Todo[], taskStatus: "open" | "completed") => {
+const createTasksString = (
+  todos: Todo[],
+  taskStatus: "open" | "completed"
+) => {
   const tasks = todos
     .filter(({ isCompleted }) =>
-      taskStatus === "completed" ? isCompleted === true : isCompleted === false
+      taskStatus === "completed"
+        ? isCompleted === true
+        : isCompleted === false
     )
-    .map(({ task, isCompleted, completedAt, createdAt }) => {
-      return `- ${task}, ${
-        isCompleted ? "completed on " + completedAt : "created on " + createdAt
-      }`;
-    });
+    .map(
+      ({ task, isCompleted, completedAt, createdAt }) => {
+        return `- ${task}, ${
+          isCompleted
+            ? "completed on " + completedAt
+            : "created on " + createdAt
+        }`;
+      }
+    );
   return `\n${
     taskStatus === "open" ? "Open" : "Completed"
   } tasks:\n${tasks.join("\n")}`;
@@ -39,18 +48,28 @@ const generateMostRecentTasks = (
   taskStatus: "open" | "completed"
 ) =>
   projectsWithTasks.reduce(
-    (accumulator: SingleTask[], project: ProjectWithTasks) => {
+    (
+      accumulator: SingleTask[],
+      project: ProjectWithTasks
+    ) => {
       const taskDates = project.todos
         .filter(({ isCompleted }) =>
-          taskStatus === "completed" ? isCompleted : !isCompleted
+          taskStatus === "completed"
+            ? isCompleted
+            : !isCompleted
         )
         .map((todo) =>
-          taskStatus === "completed" ? todo.completedAt : todo.createdAt
+          taskStatus === "completed"
+            ? todo.completedAt
+            : todo.createdAt
         );
 
       taskDates.forEach((taskDate) => {
         if (taskDate && accumulator.length === 0) {
-          accumulator.push({ projectID: project.projectID, taskDate });
+          accumulator.push({
+            projectID: project.projectID,
+            taskDate,
+          });
           return;
         }
 
@@ -79,11 +98,13 @@ const generateMostRecentTasks = (
             taskDate,
           });
         }
-        accumulator.sort((taskA: SingleTask, taskB: SingleTask) => {
-          const dateA = new Date(taskA.taskDate);
-          const dateB = new Date(taskB.taskDate);
-          return dateA.getTime() - dateB.getTime();
-        });
+        accumulator.sort(
+          (taskA: SingleTask, taskB: SingleTask) => {
+            const dateA = new Date(taskA.taskDate);
+            const dateB = new Date(taskB.taskDate);
+            return dateA.getTime() - dateB.getTime();
+          }
+        );
       });
 
       return accumulator;
@@ -91,7 +112,9 @@ const generateMostRecentTasks = (
     []
   );
 
-const calculateMostRecentProject = (projects: Project[]) => {
+const calculateMostRecentProject = (
+  projects: Project[]
+) => {
   // early return for when there are no active projects
   if (projects.length === 0 || projects === undefined)
     return `No active projects at the moment`;
@@ -102,7 +125,8 @@ const calculateMostRecentProject = (projects: Project[]) => {
       return { projectID, todos };
     });
 
-  if (projectsWithTasks.length === 0) return `No active projects at the moment`;
+  if (projectsWithTasks.length === 0)
+    return `No active projects at the moment`;
 
   const recentlyCompletedTasks = generateMostRecentTasks(
     projectsWithTasks,
@@ -113,7 +137,10 @@ const calculateMostRecentProject = (projects: Project[]) => {
     "open"
   );
 
-  const mostRecentTasks = [...recentlyCompletedTasks, ...recentlyCreatedTasks];
+  const mostRecentTasks = [
+    ...recentlyCompletedTasks,
+    ...recentlyCreatedTasks,
+  ];
 
   let taskCountPerProject: { [key: string]: number } = {};
 
@@ -124,7 +151,9 @@ const calculateMostRecentProject = (projects: Project[]) => {
 
   const projectIDWithMostRecentTasks = parseInt(
     Object.keys(taskCountPerProject).reduce((acc, curr) =>
-      taskCountPerProject[acc] >= taskCountPerProject[curr] ? acc : curr
+      taskCountPerProject[acc] >= taskCountPerProject[curr]
+        ? acc
+        : curr
     )
   );
 
@@ -134,7 +163,8 @@ const calculateMostRecentProject = (projects: Project[]) => {
   return mostRecentProject;
 };
 
-const mostRecentProject = calculateMostRecentProject(projects);
+const mostRecentProject =
+  calculateMostRecentProject(projects);
 
 const generatePromptTaskSuggestion = (
   project: Project | "No active projects at the moment"
@@ -148,10 +178,10 @@ const generatePromptTaskSuggestion = (
       ", "
     )}\nMissing materials: ${project.missingMaterials.join(
       ", "
-    )}${createTasksString(project.todos, "completed")}${createTasksString(
+    )}${createTasksString(
       project.todos,
-      "open"
-    )}`;
+      "completed"
+    )}${createTasksString(project.todos, "open")}`;
   }
 };
 
@@ -160,14 +190,14 @@ export async function getOpenAIResponse(
   maxToken: number,
   temperature: number
 ) {
-  const completion = await openai.createChatCompletion({
-    model: "gpt-3.5-turbo",
-    messages: [{ role: "user", content: prompt }],
+  const completion = await openai.createCompletion({
+    model: "text-davinci-003",
+    prompt: prompt,
     max_tokens: maxToken,
     temperature: temperature,
   });
 
-  return completion.data.choices[0].message?.content;
+  return completion.data.choices[0].text;
 }
 
 export async function GET() {
@@ -176,18 +206,23 @@ export async function GET() {
     150,
     0.6
   ).catch(() => null);
+
   if (!taskSuggestion)
     return NextResponse.json(
       { message: "Failed to generate task suggestion" },
       { status: 500 }
     );
 
-  const promptTimeEstimation = promptMessageTimeEstimation + taskSuggestion;
+  const promptTimeEstimation =
+    promptMessageTimeEstimation + taskSuggestion;
   const estimatedTime = await getOpenAIResponse(
     promptTimeEstimation,
     10,
     0.3
   ).catch(() => null);
 
-  return NextResponse.json({ taskSuggestion, estimatedTime });
+  return NextResponse.json({
+    taskSuggestion,
+    estimatedTime,
+  });
 }
