@@ -7,7 +7,7 @@ Use an enthusiastic and encouraging language and appreciate the users recent acc
 Write from the 1st person perspective.
 If there are no active projects at the moment, instead of the task suggestion ask some questions that will inspire the user to create diy ideas. Base those questions on the book "The Art of Noticing" from Rob Walker but do not ever mention the book explicitly. 
 Your response MUST not start with "That's alright" or "That's great" as your response MUST be selfexplanatory without having to rely on further context.
-Do not ever use words that prompt the user to ask you further questions (such as "Let me know if").
+Do not ever use words that prompt the user to ask you further questions (such as "Let me know if" or "feel free to ask").
 Your response should not include line breaks.`;
 
 export const promptMessageTimeEstimation = `You are a task assistant.
