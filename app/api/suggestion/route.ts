@@ -1,5 +1,5 @@
 import projects from "../projects/projects.json";
-import { NextResponse, userAgent } from "next/server";
+import { NextResponse } from "next/server";
 import { Project } from "../projects/types";
 import { Todo } from "../projects/types";
 import openai from "@/app/utils/openai";
@@ -125,7 +125,8 @@ export async function GET() {
 
   if (!promptText)
     return NextResponse.json({
-      taskSuggestion: "Looks like you have no open todos...",
+      taskSuggestion:
+        "Looks like you have no open todos, hop over to your projects and start planning!",
       estimatedTime: "30 min",
     });
 
@@ -137,10 +138,10 @@ export async function GET() {
   ).catch((e) => console.log(e));
 
   if (!taskSuggestion)
-    return NextResponse.json(
-      { message: "Failed to generate task suggestion" },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      error:
+        "Hey, our AI buddy seems to be sleeping right now, check back again later for new suggestions!",
+    });
 
   const estimatedTime = await getOpenAIResponse(
     taskSuggestion,
