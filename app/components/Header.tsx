@@ -5,7 +5,7 @@ import Logo from "./Logo";
 export default function Header() {
   return (
     <header>
-      <div className="mt-5 flex flex-row">
+      <div className=" mt-5 flex flex-row md:mt-8">
         <div className="flex flex-col">
           <Logo />
           <p
