@@ -9,7 +9,10 @@
     "lint": "next lint",
     "generate": "drizzle-kit generate:sqlite --out db/migrations  --schema db/schema.ts",
     "migrate": "node db/migrate.mjs",
-    "db:update": "npm run generate && npm run migrate"
+    "seed": "tsc db/seed.ts 1>/dev/null || true && node ./db/seed.js && rm db/seed.js && rm db/schema.js",
+    "db:seed": "npm run -s seed",
+    "db:update": "npm run generate && npm run migrate",
+    "drizzle-drop": "drizzle-kit drop"
   },
   "dependencies": {
     "@libsql/client": "^0.2.1",
