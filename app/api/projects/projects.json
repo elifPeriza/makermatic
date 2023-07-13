@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "title": "Arched Garden Shelf",
+    "name": "Arched Garden Shelf",
     "description": "",
     "createdAt": "2023-04-11 ",
     "completedAt": "",
@@ -33,7 +33,7 @@
   },
   {
     "id": 2,
-    "title": "Wood Art",
+    "name": "Wood Art",
     "description": "",
     "createdAt": "2023-04-15 ",
     "completedAt": "",
@@ -65,7 +65,7 @@
   },
   {
     "id": 3,
-    "title": "Japanese inspired Fabric Art",
+    "name": "Japanese inspired Fabric Art",
     "description": "",
     "createdAt": "2023-04-20",
     "completedAt": "",

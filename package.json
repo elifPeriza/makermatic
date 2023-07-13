@@ -6,13 +6,22 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate": "drizzle-kit generate:sqlite --out db/migrations  --schema db/schema.ts",
+    "migrate": "node db/migrate.mjs",
+    "seed": "tsc db/seed.ts 1>/dev/null || true && node ./db/seed.js && rm db/seed.js && rm db/schema.js",
+    "db:seed": "npm run -s seed",
+    "db:update": "npm run generate && npm run migrate",
+    "drizzle-drop": "drizzle-kit drop"
   },
   "dependencies": {
-    "@types/node": "18.15.11",
-    "@types/react": "^18.0.34",
-    "@types/react-dom": "^18.0.11",
+    "@libsql/client": "^0.2.1",
+    "@types/node": "20.3.1",
+    "@types/react": "^18.2.12",
+    "@types/react-dom": "^18.2.5",
     "autoprefixer": "10.4.14",
+    "dotenv": "^16.3.1",
+    "drizzle-orm": "^0.27.0",
     "eslint": "8.38.0",
     "eslint-config-next": "^13.4.1",
     "next": "^13.4.2-canary.5",
@@ -20,10 +29,12 @@
     "postcss": "8.4.21",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "sqlite3": "^5.1.6",
     "tailwindcss": "3.3.1",
-    "typescript": "^5.0.4"
+    "typescript": "^5.1.3"
   },
   "devDependencies": {
+    "drizzle-kit": "^0.19.1",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-prettier": "^4.2.1",
     "prettier": "^2.8.7",

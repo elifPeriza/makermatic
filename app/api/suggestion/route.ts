@@ -4,219 +4,148 @@ import { Project } from "../projects/types";
 import { Todo } from "../projects/types";
 import openai from "@/app/utils/openai";
 import {
-  promptMessageTimeEstimation,
-  promptMessageTaskSuggestion,
+  promptMessageTimeEstimation as systemMessageTimeEstimation,
+  promptMessageTaskSuggestion as systemMessageTaskSuggestion,
 } from "@/app/utils/prompts";
 
-type ProjectWithTasks = {
-  projectID: number;
-  todos: Todo[];
+const generateMostRecentProject = (projects: Project[]) => {
+  if (!projects || projects.length === 0)
+    return "No active projects at the moment";
+
+  const projectsWithTask = projects.filter((project: Project) => {
+    return (
+      project.todos && project.todos.length > 0 && project.isCompleted === false
+    );
+  });
+
+  const sortedProjects = projectsWithTask.sort((a, b) => {
+    if (!a.todos && !b.todos) return 0;
+    if (!b.todos) return -1;
+    if (!a.todos) return 1;
+
+    let score = 0;
+    const latestToDoDateA = a.todos
+      .filter((todo) => !todo.isCompleted)
+      .sort((toDoA, toDoB) =>
+        toDoA.createdAt < toDoB.createdAt ? 1 : -1
+      )[0].createdAt;
+    const latestToDoDateB = b.todos
+      .filter((todo) => !todo.isCompleted)
+      .sort((toDoA, toDoB) =>
+        toDoA.createdAt < toDoB.createdAt ? 1 : -1
+      )[0].createdAt;
+    if (latestToDoDateA && latestToDoDateB)
+      score += latestToDoDateA < latestToDoDateB ? 1 : -1;
+
+    const completedTaskArrayA = a.todos.filter((toDo) => toDo.isCompleted);
+    const completedTaskArrayB = b.todos.filter((toDo) => toDo.isCompleted);
+
+    const latestCompletedToDoDateA = completedTaskArrayA?.sort((toDoA, toDoB) =>
+      toDoA.createdAt < toDoB.createdAt ? 1 : -1
+    )[0].completedAt;
+
+    const latestCompletedToDoDateB = completedTaskArrayB?.sort((toDoA, toDoB) =>
+      toDoA.createdAt < toDoB.createdAt ? 1 : -1
+    )[0].completedAt;
+
+    if (latestCompletedToDoDateA && latestCompletedToDoDateB)
+      score += latestCompletedToDoDateA < latestCompletedToDoDateB ? 2 : -2;
+
+    if (completedTaskArrayA && completedTaskArrayB)
+      score +=
+        completedTaskArrayA.length / a.todos.length >
+        completedTaskArrayB.length / b.todos.length
+          ? -1
+          : 1;
+
+    return score;
+  });
+
+  return sortedProjects[0];
 };
 
-type SingleTask = {
-  projectID: number;
-  taskDate: string;
-};
-
-// function to transform project tasks to a string for prompt
-const createTasksString = (
-  todos: Todo[],
-  taskStatus: "open" | "completed"
-) => {
+const createTasksString = (todos: Todo[], taskStatus: "open" | "completed") => {
   const tasks = todos
     .filter(({ isCompleted }) =>
-      taskStatus === "completed"
-        ? isCompleted === true
-        : isCompleted === false
+      taskStatus === "completed" ? isCompleted === true : isCompleted === false
     )
-    .map(
-      ({ task, isCompleted, completedAt, createdAt }) => {
-        return `- ${task}, ${
-          isCompleted
-            ? "completed on " + completedAt
-            : "created on " + createdAt
-        }`;
-      }
-    );
+    .map(({ task, isCompleted, completedAt, createdAt }) => {
+      return `- ${task}, ${
+        isCompleted ? "completed on " + completedAt : "created on " + createdAt
+      }`;
+    });
   return `\n${
     taskStatus === "open" ? "Open" : "Completed"
   } tasks:\n${tasks.join("\n")}`;
 };
 
-const generateMostRecentTasks = (
-  projectsWithTasks: ProjectWithTasks[],
-  taskStatus: "open" | "completed"
-) =>
-  projectsWithTasks.reduce(
-    (
-      accumulator: SingleTask[],
-      project: ProjectWithTasks
-    ) => {
-      const taskDates = project.todos
-        .filter(({ isCompleted }) =>
-          taskStatus === "completed"
-            ? isCompleted
-            : !isCompleted
-        )
-        .map((todo) =>
-          taskStatus === "completed"
-            ? todo.completedAt
-            : todo.createdAt
-        );
-
-      taskDates.forEach((taskDate) => {
-        if (taskDate && accumulator.length === 0) {
-          accumulator.push({
-            projectID: project.projectID,
-            taskDate,
-          });
-          return;
-        }
-
-        if (
-          taskDate &&
-          taskDate > accumulator.slice(-1)[0].taskDate &&
-          accumulator.length >= 3
-        )
-          return;
-
-        if (taskDate && accumulator.length <= 3) {
-          accumulator.push({
-            projectID: project.projectID,
-            taskDate,
-          });
-        }
-
-        if (
-          taskDate &&
-          taskDate <= accumulator.slice(-1)[0].taskDate &&
-          accumulator.length > 3
-        ) {
-          accumulator.pop();
-          accumulator.push({
-            projectID: project.projectID,
-            taskDate,
-          });
-        }
-        accumulator.sort(
-          (taskA: SingleTask, taskB: SingleTask) => {
-            const dateA = new Date(taskA.taskDate);
-            const dateB = new Date(taskB.taskDate);
-            return dateA.getTime() - dateB.getTime();
-          }
-        );
-      });
-
-      return accumulator;
-    },
-    []
-  );
-
-const calculateMostRecentProject = (
-  projects: Project[]
-) => {
-  // early return for when there are no active projects
-  if (projects.length === 0 || projects === undefined)
-    return `No active projects at the moment`;
-
-  const projectsWithTasks = projects
-    .filter(({ isCompleted }) => isCompleted === false)
-    .map(({ id: projectID, todos }) => {
-      return { projectID, todos };
-    });
-
-  if (projectsWithTasks.length === 0)
-    return `No active projects at the moment`;
-
-  const recentlyCompletedTasks = generateMostRecentTasks(
-    projectsWithTasks,
-    "completed"
-  );
-  const recentlyCreatedTasks = generateMostRecentTasks(
-    projectsWithTasks,
-    "open"
-  );
-
-  const mostRecentTasks = [
-    ...recentlyCompletedTasks,
-    ...recentlyCreatedTasks,
-  ];
-
-  let taskCountPerProject: { [key: string]: number } = {};
-
-  mostRecentTasks.forEach((task) => {
-    taskCountPerProject[task.projectID] ??= 0;
-    taskCountPerProject[task.projectID]++;
-  });
-
-  const projectIDWithMostRecentTasks = parseInt(
-    Object.keys(taskCountPerProject).reduce((acc, curr) =>
-      taskCountPerProject[acc] >= taskCountPerProject[curr]
-        ? acc
-        : curr
-    )
-  );
-
-  const mostRecentProject = projects.find(
-    (project) => project.id === projectIDWithMostRecentTasks
-  ) as Project; // type assertion as we know that at this point the calculcated projectID does exist & we have an early return
-  return mostRecentProject;
-};
-
-const mostRecentProject =
-  calculateMostRecentProject(projects);
-
 const generatePromptTaskSuggestion = (
   project: Project | "No active projects at the moment"
 ) => {
   if (project === "No active projects at the moment") {
-    return promptMessageTaskSuggestion + project;
-  } else {
-    return ` ${promptMessageTaskSuggestion}\n\nProject: ${
-      project.title
-    }\nMaterials at hand: ${project.materialsAtHand.join(
-      ", "
-    )}\nMissing materials: ${project.missingMaterials.join(
-      ", "
-    )}${createTasksString(
-      project.todos,
-      "completed"
-    )}${createTasksString(project.todos, "open")}`;
+    return project;
   }
+  if (!project.todos) return null;
+
+  return ` Project: ${
+    project.name
+  }\nMaterials at hand: ${project.materialsAtHand?.join(
+    ", "
+  )}\nMissing materials: ${project.missingMaterials?.join(
+    ", "
+  )}${createTasksString(project.todos, "completed")}${createTasksString(
+    project.todos,
+    "open"
+  )}`;
 };
 
 export async function getOpenAIResponse(
   prompt: string,
+  systemMessage: string,
   maxToken: number,
   temperature: number
 ) {
-  const completion = await openai.createCompletion({
-    model: "text-davinci-003",
-    prompt: prompt,
+  const completion = await openai.createChatCompletion({
+    model: "gpt-3.5-turbo",
+    messages: [
+      { role: "system", content: systemMessage },
+      { role: "user", content: prompt },
+    ],
     max_tokens: maxToken,
     temperature: temperature,
   });
 
-  return completion.data.choices[0].text;
+  return completion.data.choices[0].message?.content;
 }
 
 export async function GET() {
+  const latestProject = generateMostRecentProject(projects);
+
+  const promptText = generatePromptTaskSuggestion(latestProject);
+
+  if (!promptText)
+    return NextResponse.json({
+      taskSuggestion:
+        "Looks like you have no open todos, hop over to your projects and start planning!",
+      estimatedTime: "30 min",
+    });
+
   const taskSuggestion = await getOpenAIResponse(
-    generatePromptTaskSuggestion(mostRecentProject),
+    promptText,
+    systemMessageTaskSuggestion,
     150,
     0.6
-  ).catch(() => null);
+  ).catch((e) => console.log(e));
 
   if (!taskSuggestion)
-    return NextResponse.json(
-      { message: "Failed to generate task suggestion" },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      error:
+        "Hey, our AI buddy seems to be sleeping right now, check back again later for new suggestions!",
+    });
 
-  const promptTimeEstimation =
-    promptMessageTimeEstimation + taskSuggestion;
   const estimatedTime = await getOpenAIResponse(
-    promptTimeEstimation,
+    taskSuggestion,
+    systemMessageTimeEstimation,
     10,
     0.3
   ).catch(() => null);
