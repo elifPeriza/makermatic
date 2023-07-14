@@ -13,7 +13,11 @@ const client = createClient({
 const db = drizzle(client);
 
 const createUser = async () => {
-  await db.insert(users).values({ id: 1 }).returning().all();
+  await db
+    .insert(users)
+    .values({ id: 1, createdAt: "2023-07-10 17:45:34" })
+    .returning()
+    .all();
 };
 
 createUser();
@@ -26,16 +30,19 @@ const createProjectsWithTasks = async () => {
         name: "Wood Art",
         description: "Colorful japanese wood block art",
         userId: 1,
+        createdAt: "2023-07-11 18:00:00",
       },
       {
         name: "Fabric Art Piece",
         description: "Japanese inspired Linen Fabric Art",
         userId: 1,
+        createdAt: "2023-07-11 19:00:00",
       },
       {
         name: "Arched Shelving",
         description: "Mediterranean inspired shelving with arched frame",
         userId: 1,
+        createdAt: "2023-07-11 20:00:00",
       },
     ])
     .returning()
@@ -47,38 +54,49 @@ const createProjectsWithTasks = async () => {
       {
         description: "Decide on wood arrangement",
         projectId: insertedProjects[0].id,
+        createdAt: "2023-07-12 17:45:00",
+        completedAt: "2023-07-13 17:45:00",
         isCompleted: 1,
       },
       {
         description: "wood",
         type: "material",
+        createdAt: "2023-07-12 17:45:00",
         projectId: insertedProjects[0].id,
       },
       {
         description: "cut wood",
+        createdAt: "2023-07-12 17:45:00",
         projectId: insertedProjects[0].id,
       },
       {
         description: "paint wood cuts",
+        createdAt: "2023-07-12 17:45:00",
         projectId: insertedProjects[0].id,
       },
       {
         description: "timber for art frame",
         type: "material",
+        createdAt: "2023-07-12 17:00:00",
         projectId: insertedProjects[1].id,
       },
       {
         description: "buy fabric",
         projectId: insertedProjects[1].id,
+        createdAt: "2023-07-12 17:00:00",
+        completedAt: "2023-07-14 14:45:34",
         isCompleted: 1,
       },
       {
         description: "decide on motif",
         projectId: insertedProjects[1].id,
+        createdAt: "2023-07-12 17:00:00",
+        completedAt: "2023-07-14 08:45:34",
         isCompleted: 1,
       },
       {
         description: "cut fabric",
+        createdAt: "2023-07-12 17:00:00",
         projectId: insertedProjects[1].id,
       },
     ])
