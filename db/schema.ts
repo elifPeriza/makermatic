@@ -68,6 +68,7 @@ export const taskSuggestions = sqliteTable("tasksuggestions", {
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
   taskId: integer("task_id").references(() => tasks.id),
+  estimatedTime: integer("estimated_time"),
 });
 
 export type TaskSuggestion = InferModel<typeof taskSuggestions, "select">;
