@@ -4,8 +4,8 @@ import { useState } from "react";
 import { roboto_mono } from "../fonts";
 import Emoji from "./Emoji";
 import Tag from "./Tag";
-
-import { TagLabel, Project } from "../api/projects/types";
+import { TagLabel } from "../types/Tags";
+import { Project } from "@/db/schema";
 
 type ProjectListProps = {
   projects: Project[];

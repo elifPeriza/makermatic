@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { roboto_mono } from "../fonts";
-import { TagLabel } from "../api/projects/types";
+import { TagLabel } from "../types/Tags";
 
 type HandleFilterChange = (tagText: TagLabel) => void;
 
