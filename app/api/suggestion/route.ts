@@ -1,157 +1,269 @@
-import projects from "../projects/projects.json";
-import { NextResponse } from "next/server";
-import { Project } from "../projects/types";
-import { Todo } from "../projects/types";
+import isOlderThan24Hours from "@/app/utils/date";
 import openai from "@/app/utils/openai";
-import {
-  promptMessageTimeEstimation as systemMessageTimeEstimation,
-  promptMessageTaskSuggestion as systemMessageTaskSuggestion,
-} from "@/app/utils/prompts";
+import { systemMessageTaskSuggestion } from "@/app/utils/prompts";
+import { db } from "@/db/drizzle";
+import { taskSuggestions } from "@/db/schema";
+import { NextResponse } from "next/server";
+import { z } from "zod";
 
-const generateMostRecentProject = (projects: Project[]) => {
+const getAllProjects = async () => {
+  const allProjects = await db.query.projects.findMany({
+    with: {
+      tasks: true,
+    },
+  });
+  return allProjects;
+};
+
+const generateMostRecentProject = async () => {
+  const projects = await getAllProjects();
   if (!projects || projects.length === 0)
     return "No active projects at the moment";
 
-  const projectsWithTask = projects.filter((project: Project) => {
-    return (
-      project.todos && project.todos.length > 0 && project.isCompleted === false
-    );
-  });
+  const projectsWithTask = projects.filter(
+    (project) => project.tasks.length > 0 && !project.isCompleted
+  );
 
-  const sortedProjects = projectsWithTask.sort((a, b) => {
-    if (!a.todos && !b.todos) return 0;
-    if (!b.todos) return -1;
-    if (!a.todos) return 1;
+  if (projectsWithTask.length === 0)
+    return "No projects with tasks at the moment";
+
+  const sortedProjects = projectsWithTask.sort((projectA, projectB) => {
+    if (!projectA.tasks && !projectB.tasks) return 0;
+    if (!projectA.tasks) return 1;
+    if (!projectB.tasks) return -1;
 
     let score = 0;
-    const latestToDoDateA = a.todos
-      .filter((todo) => !todo.isCompleted)
-      .sort((toDoA, toDoB) =>
-        toDoA.createdAt < toDoB.createdAt ? 1 : -1
-      )[0].createdAt;
-    const latestToDoDateB = b.todos
-      .filter((todo) => !todo.isCompleted)
-      .sort((toDoA, toDoB) =>
-        toDoA.createdAt < toDoB.createdAt ? 1 : -1
-      )[0].createdAt;
-    if (latestToDoDateA && latestToDoDateB)
-      score += latestToDoDateA < latestToDoDateB ? 1 : -1;
 
-    const completedTaskArrayA = a.todos.filter((toDo) => toDo.isCompleted);
-    const completedTaskArrayB = b.todos.filter((toDo) => toDo.isCompleted);
+    const latestOpenToDoDateA = projectA.tasks
+      .filter((task) => !task.isCompleted)
+      .sort((a, b) => {
+        return a.createdAt > b.createdAt ? -1 : 1;
+      })[0].createdAt;
 
-    const latestCompletedToDoDateA = completedTaskArrayA?.sort((toDoA, toDoB) =>
-      toDoA.createdAt < toDoB.createdAt ? 1 : -1
-    )[0].completedAt;
+    const latestOpenToDoDateB = projectB.tasks
+      .filter((task) => !task.isCompleted)
+      .sort((a, b) => {
+        return a.createdAt > b.createdAt ? -1 : 1;
+      })[0].createdAt;
 
-    const latestCompletedToDoDateB = completedTaskArrayB?.sort((toDoA, toDoB) =>
-      toDoA.createdAt < toDoB.createdAt ? 1 : -1
-    )[0].completedAt;
+    if (latestOpenToDoDateA && latestOpenToDoDateB)
+      score += latestOpenToDoDateA > latestOpenToDoDateB ? -1 : 1;
+
+    const allCompletedTasksA = projectA.tasks.filter(
+      (task) => task.isCompleted
+    );
+
+    const allCompletedTasksB = projectB.tasks.filter(
+      (task) => task.isCompleted
+    );
+
+    const latestCompletedToDoDateA = allCompletedTasksA.sort((a, b) => {
+      if (!a.completedAt && !b.completedAt) return 0;
+      if (!a.completedAt) return 1;
+      if (!b.completedAt) return -1;
+      if (a.completedAt && b.completedAt) {
+        return a.completedAt > b.completedAt ? -1 : 1;
+      }
+      return 0;
+    })[0].completedAt;
+
+    const latestCompletedToDoDateB = allCompletedTasksB.sort((a, b) => {
+      if (!a.completedAt && !b.completedAt) return 0;
+      if (!a.completedAt) return 1;
+      if (!b.completedAt) return -1;
+      if (a.completedAt && b.completedAt) {
+        return a.completedAt > b.completedAt ? -1 : 1;
+      }
+      return 0;
+    })[0].completedAt;
 
     if (latestCompletedToDoDateA && latestCompletedToDoDateB)
-      score += latestCompletedToDoDateA < latestCompletedToDoDateB ? 2 : -2;
+      score += latestCompletedToDoDateA > latestCompletedToDoDateB ? -2 : 2;
 
-    if (completedTaskArrayA && completedTaskArrayB)
-      score +=
-        completedTaskArrayA.length / a.todos.length >
-        completedTaskArrayB.length / b.todos.length
-          ? -1
-          : 1;
+    if (allCompletedTasksA && allCompletedTasksB) {
+      return allCompletedTasksA.length / projectA.tasks.length >
+        allCompletedTasksB.length / projectB.tasks.length
+        ? -1
+        : 1;
+    }
 
     return score;
   });
-
   return sortedProjects[0];
 };
 
-const createTasksString = (todos: Todo[], taskStatus: "open" | "completed") => {
-  const tasks = todos
-    .filter(({ isCompleted }) =>
-      taskStatus === "completed" ? isCompleted === true : isCompleted === false
-    )
-    .map(({ task, isCompleted, completedAt, createdAt }) => {
-      return `- ${task}, ${
-        isCompleted ? "completed on " + completedAt : "created on " + createdAt
-      }`;
+const createPromptText = async () => {
+  const latestProject = await generateMostRecentProject();
+
+  if (latestProject === "No active projects at the moment") return undefined;
+  if (latestProject === "No projects with tasks at the moment")
+    return undefined;
+
+  const materialsAtHand = latestProject.tasks
+    .filter(({ type, isCompleted }) => type === "material" && isCompleted)
+    .map(({ description }) => description);
+
+  const missingMaterials = latestProject.tasks
+    .filter(({ type, isCompleted }) => type === "material" && !isCompleted)
+    .map(({ description, id }) => {
+      return `- ${description}, id: ${id}`;
     });
-  return `\n${
-    taskStatus === "open" ? "Open" : "Completed"
-  } tasks:\n${tasks.join("\n")}`;
+
+  const tasksWithoutMaterials = latestProject.tasks.filter(
+    ({ type }) => type === "to-do"
+  );
+
+  const completedTasks = tasksWithoutMaterials
+    .filter(({ isCompleted }) => isCompleted)
+    .map(
+      ({ id, description, completedAt }) =>
+        `- ${description}, completed on ${completedAt}, id: ${id}`
+    );
+
+  const openTasks = tasksWithoutMaterials
+    .filter(({ isCompleted }) => !isCompleted)
+    .map(
+      ({ id, description, createdAt }) =>
+        `- ${description}, created at ${createdAt}, id: ${id}`
+    );
+
+  return `Project: ${latestProject.name}
+  \nMaterials at hand: ${materialsAtHand.join(", ")}
+  \nMissing materials:\n${missingMaterials.join("\n")}
+  \nCompleted tasks: \n${completedTasks.join("\n")}
+  \nOpen tasks: \n${openTasks.join("\n")}`;
 };
 
-const generatePromptTaskSuggestion = (
-  project: Project | "No active projects at the moment"
-) => {
-  if (project === "No active projects at the moment") {
-    return project;
-  }
-  if (!project.todos) return null;
-
-  return ` Project: ${
-    project.name
-  }\nMaterials at hand: ${project.materialsAtHand?.join(
-    ", "
-  )}\nMissing materials: ${project.missingMaterials?.join(
-    ", "
-  )}${createTasksString(project.todos, "completed")}${createTasksString(
-    project.todos,
-    "open"
-  )}`;
-};
-
-export async function getOpenAIResponse(
+async function getOpenAIResponse(
   prompt: string,
   systemMessage: string,
   maxToken: number,
   temperature: number
 ) {
   const completion = await openai.createChatCompletion({
-    model: "gpt-3.5-turbo",
+    model: "gpt-3.5-turbo-0613",
     messages: [
       { role: "system", content: systemMessage },
       { role: "user", content: prompt },
+    ],
+    functions: [
+      {
+        name: "store_motivating_task_suggestion",
+        description: "Store the task suggestion message with the task id",
+        parameters: {
+          type: "object",
+          properties: {
+            id: {
+              type: "number",
+              description: "The id of the task or missing material",
+            },
+            motivatingMessage: {
+              type: "string",
+              description: "A motivating message for the user",
+            },
+            estimatedTimeToCompleteInMinutes: {
+              type: "number",
+              description:
+                "Estimated time in minutes to complete the suggested task",
+            },
+          },
+          required: [
+            "id",
+            "motivatingMessage",
+            "estimatedTimeToCompleteInMinutes",
+          ],
+        },
+      },
     ],
     max_tokens: maxToken,
     temperature: temperature,
   });
 
-  return completion.data.choices[0].message?.content;
+  const taskSuggestionArguments =
+    completion.data.choices[0].message?.function_call?.arguments;
+
+  if (!taskSuggestionArguments) return undefined;
+  try {
+    const taskSuggestion: {
+      id: number;
+      motivatingMessage: string;
+      estimatedTimeToCompleteInMinutes: number;
+    } = JSON.parse(taskSuggestionArguments);
+
+    const TaskSuggestion = z.object({
+      id: z.number().positive(),
+      motivatingMessage: z.string(),
+      estimatedTimeToCompleteInMinutes: z.number().gte(5).lte(600),
+    });
+
+    TaskSuggestion.parse(taskSuggestion);
+
+    return taskSuggestion;
+  } catch (error) {
+    console.log("Failed to parse arguments");
+    return undefined;
+  }
 }
 
 export async function GET() {
-  const latestProject = generateMostRecentProject(projects);
+  const taskSuggestion = await db
+    .select({
+      id: taskSuggestions.taskId,
+      motivatingMessage: taskSuggestions.content,
+      estimatedTimeToCompleteInMinutes: taskSuggestions.estimatedTime,
+      createdAt: taskSuggestions.createdAt,
+    })
+    .from(taskSuggestions)
+    .all();
 
-  const promptText = generatePromptTaskSuggestion(latestProject);
+  const isSuggestionOlderThan24Hours = isOlderThan24Hours(
+    taskSuggestion[0].createdAt
+  );
+
+  if (taskSuggestion && !isSuggestionOlderThan24Hours)
+    return NextResponse.json(taskSuggestion[0]);
+
+  const promptText = await createPromptText();
 
   if (!promptText)
     return NextResponse.json({
-      taskSuggestion:
-        "Looks like you have no open todos, hop over to your projects and start planning!",
-      estimatedTime: "30 min",
+      motivatingMessage:
+        "Looks like you have no open todos or active projects. Hop over to your projects to start planning or create a new project!",
+      estimatedTimeToCompleteInMinutes: "30 min",
     });
 
-  const taskSuggestion = await getOpenAIResponse(
+  const newTaskSuggestion = await getOpenAIResponse(
     promptText,
     systemMessageTaskSuggestion,
     150,
     0.6
   ).catch((e) => console.log(e));
 
-  if (!taskSuggestion)
+  if (!newTaskSuggestion)
     return NextResponse.json({
       error:
         "Hey, our AI buddy seems to be sleeping right now, check back again later for new suggestions!",
     });
 
-  const estimatedTime = await getOpenAIResponse(
-    taskSuggestion,
-    systemMessageTimeEstimation,
-    10,
-    0.3
-  ).catch(() => null);
+  const taskValues = {
+    id: 1,
+    content: newTaskSuggestion.motivatingMessage,
+    taskId: newTaskSuggestion.id,
+    estimatedTime: newTaskSuggestion.estimatedTimeToCompleteInMinutes,
+    createdAt: new Date().toISOString(),
+  };
 
-  return NextResponse.json({
-    taskSuggestion,
-    estimatedTime,
-  });
+  const updatedTaskSuggestion = await db
+    .insert(taskSuggestions)
+    .values(taskValues)
+    .onConflictDoUpdate({ target: taskSuggestions.id, set: taskValues })
+    .returning({
+      id: taskSuggestions.taskId,
+      motivatingMessage: taskSuggestions.content,
+      estimatedTimeToCompleteInMinutes: taskSuggestions.estimatedTime,
+      createdAt: taskSuggestions.createdAt,
+    })
+    .all();
+
+  return NextResponse.json(updatedTaskSuggestion);
 }
