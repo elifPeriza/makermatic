@@ -42,8 +42,9 @@ export default async function TaskSuggestion() {
           <p
             className={`${roboto.variable} max-w-xs self-center font-sans text-base text-white`}
           >
-            {`${estimatedTimeToCompleteInMinutes} min. ` ||
-              "Be your own time master!"}
+            {estimatedTimeToCompleteInMinutes
+              ? `${estimatedTimeToCompleteInMinutes} min. `
+              : "Be your own time master!"}
           </p>
           <HourGlass />
         </div>
