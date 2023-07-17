@@ -1,4 +1,3 @@
-import { roboto } from "../fonts";
 import Button from "./Button";
 import Emoji from "./Emoji";
 import HourGlass from "./HourGlass";
@@ -18,15 +17,11 @@ export default async function TaskSuggestion() {
 
   return (
     <div className=" flex min-w-[250px] max-w-sm flex-col gap-3 ">
-      <h2
-        className={`${roboto.variable} font-sans text-lg font-semibold text-white`}
-      >
+      <h2 className={`font-sans text-lg font-semibold text-white`}>
         Your daily task suggestion
       </h2>
       <div className="flex flex-row justify-between">
-        <p
-          className={`${roboto.variable} mr-3 max-w-xs font-sans text-base text-white`}
-        >
+        <p className={`mr-3 max-w-xs font-sans text-base text-white`}>
           {error
             ? error
             : motivatingMessage
@@ -39,9 +34,7 @@ export default async function TaskSuggestion() {
       <div className="mt-4 flex flex-row justify-between">
         <Button variant="secondary">Go to task</Button>
         <div className="flex flex-row gap-3">
-          <p
-            className={`${roboto.variable} max-w-xs self-center font-sans text-base text-white`}
-          >
+          <p className={` max-w-xs self-center font-sans text-base text-white`}>
             {estimatedTimeToCompleteInMinutes
               ? `${estimatedTimeToCompleteInMinutes} min. `
               : "Be your own time master!"}

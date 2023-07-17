@@ -1,19 +1,19 @@
-import { roboto } from "../fonts";
-
 type ButtonProps = {
   variant: "primary" | "secondary";
   children: string;
+  onClick?: () => void;
 };
 
 const variants = {
-  primary: " border-lightgreen  bg-softgreen text-darkblue",
+  primary: " border-lightgreen bg-softgreen text-darkblue",
   secondary: " border-lightblue bg-darkblue text-fontblue",
 };
 
-export default function Button({ variant, children }: ButtonProps) {
+export default function Button({ variant, children, onClick }: ButtonProps) {
   return (
     <button
-      className={` ${variants[variant]} cursor-pointer rounded-[5px] border px-3 py-1 font-sans text-base transition-all duration-200 hover:shadow-md hover:brightness-[0.87] hover:contrast-[1.15] hover:drop-shadow-sm hover:saturate-[1.2]  hover:filter ${roboto.variable} font-semibold `}
+      onClick={onClick}
+      className={` ${variants[variant]} cursor-pointer rounded-[5px] border px-3 py-1 font-sans text-base font-semibold transition-all duration-200 hover:shadow-md hover:brightness-[0.87] hover:contrast-[1.15] hover:drop-shadow-sm  hover:saturate-[1.2] hover:filter `}
     >
       {children}
     </button>

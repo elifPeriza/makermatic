@@ -1,4 +1,3 @@
-import { roboto } from "../fonts";
 import Button from "./Button";
 import Logo from "./Logo";
 
@@ -8,9 +7,7 @@ export default function Header() {
       <div className=" mt-5 flex flex-row md:mt-8">
         <div className="flex flex-col">
           <Logo />
-          <p
-            className={`${roboto.variable} mt-1 font-sans text-base italic text-white `}
-          >
+          <p className={` mt-1 font-sans text-base italic text-white `}>
             one brick at a time
           </p>
         </div>

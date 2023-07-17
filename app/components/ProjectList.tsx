@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { roboto_mono } from "../fonts";
 import Emoji from "./Emoji";
 import Tag from "./Tag";
 import { TagLabel } from "../types/Tags";
@@ -66,7 +65,7 @@ export default function ProjectList({ projects }: ProjectListProps) {
                    flex-col justify-center rounded-[10px] border border-lightblue bg-darkblue hover:bg-softgreen mobile:w-[calc(100%/2)] mobile:nth-[3n+3]:mx-10 sm:w-[calc(100%/3)] sm:nth-[5n+4]:ml-10 sm:nth-[5n+5]:mr-10   `}
               >
                 <p
-                  className={`${roboto_mono.variable} p-3 text-center font-mono text-fontblue group-hover:text-darkblue `}
+                  className={` p-3 text-center font-mono font-medium text-fontblue group-hover:text-darkblue `}
                 >
                   {project.name}
                 </p>

@@ -1,11 +1,9 @@
 import Header from "./components/Header";
 import ProjectList from "./components/ProjectList";
 import TaskSuggestion from "./components/TaskSuggestion";
-import { roboto } from "./fonts";
 import Button from "./components/Button";
 import { db } from "@/db/drizzle";
 import { projects } from "@/db/schema";
-
 
 const getProjects = async () => {
   const allProjects = await db.select().from(projects).all();
@@ -26,9 +24,7 @@ export default async function Home() {
           <div className="flex flex-col">
             <div className="flex flex-col gap-6">
               <div className="flex flex-row justify-between">
-                <h2
-                  className={`${roboto.variable} font-sans text-lg font-semibold text-white`}
-                >
+                <h2 className={` font-sans text-lg font-semibold text-white`}>
                   my projects
                 </h2>
                 <div className="md:hidden">
