@@ -17,17 +17,7 @@ export default function Header() {
   return (
     <header>
       <div className=" mt-5 flex flex-row md:mt-8">
-        <div className="flex flex-col">
-          <Logo />
-          <p className={` mt-1 font-sans text-base italic text-white `}>
-            one brick at a time
-          </p>
-        </div>
-        <div className="ml-8 grid h-[48px] w-[48px] grid-cols-2 self-center">
-          <div className="col-start-2 rounded-[5px] bg-brightgreen "></div>
-          <div className="rounded-[5px] bg-lightblue"></div>
-          <div className="rounded-[5px] bg-blue "></div>
-        </div>
+        <Logo />
         <nav className="ml-auto mobile:hidden sm:hidden md:block">
           <Button onClick={() => setIsOpen(true)} variant="primary">
             + new project
