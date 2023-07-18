@@ -1,7 +1,6 @@
 import Header from "./components/Header";
 import ProjectList from "./components/ProjectList";
 import TaskSuggestion from "./components/TaskSuggestion";
-import Button from "./components/Button";
 import { db } from "@/db/drizzle";
 import { projects } from "@/db/schema";
 
@@ -27,9 +26,6 @@ export default async function Home() {
                 <h2 className={` font-sans text-lg font-semibold text-white`}>
                   my projects
                 </h2>
-                <div className="md:hidden">
-                  <Button variant="primary">+ new project</Button>
-                </div>
               </div>
               <ProjectList projects={projects} />
             </div>

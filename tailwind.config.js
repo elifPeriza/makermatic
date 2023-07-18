@@ -32,8 +32,10 @@ module.exports = {
       lightgreen: "#D3FFD3",
       lightblue: "#A6B1E1",
       blue: "#697CCC",
+      midblue: "#424874",
       darkblue: "#242A59",
       fontblue: "#9DAFFF",
+      black: "#121212",
     },
     screens: {
       mobile: { max: "549px" },
