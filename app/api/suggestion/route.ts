@@ -2,7 +2,8 @@ import isOlderThan24Hours from "@/app/utils/date";
 import openai from "@/app/utils/openai";
 import { systemMessageTaskSuggestion } from "@/app/utils/prompts";
 import { db } from "@/db/drizzle";
-import { taskSuggestions } from "@/db/schema";
+import { taskSuggestions, tasks } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -216,12 +217,14 @@ export async function GET() {
     .from(taskSuggestions)
     .all();
 
-  const isSuggestionOlderThan24Hours = isOlderThan24Hours(
-    taskSuggestion[0].createdAt
-  );
-
-  if (taskSuggestion && !isSuggestionOlderThan24Hours)
-    return NextResponse.json(taskSuggestion[0]);
+  if (taskSuggestion.length > 0) {
+    const isSuggestionOlderThan24Hours = isOlderThan24Hours(
+      taskSuggestion[0].createdAt
+    );
+    if (!isSuggestionOlderThan24Hours) {
+      return NextResponse.json(taskSuggestion[0]);
+    }
+  }
 
   const promptText = await createPromptText();
 
@@ -245,8 +248,28 @@ export async function GET() {
         "Hey, our AI buddy seems to be sleeping right now, check back again later for new suggestions!",
     });
 
+  const suggestedTaskWithProjectRelation = await db.query.tasks.findFirst({
+    columns: {
+      id: true,
+      projectId: true,
+    },
+    where: eq(tasks.id, newTaskSuggestion.id),
+    with: {
+      project: true,
+    },
+  });
+
+  const suggestedTaskUserId = suggestedTaskWithProjectRelation?.project?.userId;
+
+  if (!suggestedTaskUserId)
+    return NextResponse.json({
+      error:
+        "Hey, our AI buddy seems to be sleeping right now, check back again later for new suggestions!",
+    });
+
   const taskValues = {
     id: 1,
+    userId: suggestedTaskUserId,
     content: newTaskSuggestion.motivatingMessage,
     taskId: newTaskSuggestion.id,
     estimatedTime: newTaskSuggestion.estimatedTimeToCompleteInMinutes,
@@ -265,5 +288,10 @@ export async function GET() {
     })
     .all();
 
+  if (!updatedTaskSuggestion)
+    return NextResponse.json({
+      error:
+        "Hey, our AI buddy seems to be sleeping right now, check back again later for new suggestions!",
+    });
   return NextResponse.json(updatedTaskSuggestion);
 }
