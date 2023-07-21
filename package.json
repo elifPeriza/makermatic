@@ -12,7 +12,9 @@
     "seed": "tsc db/seed.ts 1>/dev/null || true && node ./db/seed.js && rm db/seed.js && rm db/schema.js",
     "db:seed": "npm run -s seed",
     "db:update": "npm run generate && npm run migrate",
-    "drizzle-drop": "drizzle-kit drop"
+    "drizzle-drop": "drizzle-kit drop",
+    "db:reset": "node db/deleteDevDb.mjs && npm run drizzle-drop ",
+    "db:setup": "npm run db:update && npm run db:seed"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.15",
