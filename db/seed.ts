@@ -1,6 +1,6 @@
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
-import { projects, tasks, users } from "./schema";
+import { colorPalettes, projects, tasks, users } from "./schema";
 //import * as schema from "./schema";
 
 // Connection to the SQLite Database, creating a client object with the URL to the database file
@@ -22,6 +22,22 @@ const createUser = async () => {
 
 createUser();
 
+const createColorPalettes = async () => {
+  await db
+    .insert(colorPalettes)
+    .values([
+      {
+        colors:
+          '{"color1":"hsl(298, 29%, 43%)","color2":"hsl(179, 39%, 54%)","color3":"hsl(28, 77%, 56%)"}',
+        createdAt: "2023-07-10 17:45:34",
+      },
+    ])
+    .returning()
+    .all();
+};
+
+createColorPalettes();
+
 const createProjectsWithTasks = async () => {
   const insertedProjects = await db
     .insert(projects)
@@ -31,18 +47,21 @@ const createProjectsWithTasks = async () => {
         description: "Colorful japanese wood block art",
         userId: 1,
         createdAt: "2023-07-11 18:00:00",
+        colorPaletteId: 1,
       },
       {
         name: "Fabric Art Piece",
         description: "Japanese inspired Linen Fabric Art",
         userId: 1,
         createdAt: "2023-07-11 19:00:00",
+        colorPaletteId: 1,
       },
       {
         name: "Arched Shelving",
         description: "Mediterranean inspired shelving with arched frame",
         userId: 1,
         createdAt: "2023-07-11 20:00:00",
+        colorPaletteId: 1,
       },
     ])
     .returning()

@@ -14,6 +14,20 @@ export const usersRelations = relations(users, ({ many }) => ({
   projects: many(projects),
 }));
 
+export const colorPalettes = sqliteTable("color_palettes", {
+  id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+  colors: text("colors").notNull(),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
+export type ColorPalette = InferModel<typeof colorPalettes, "select">;
+
+export const colorPalettesRelations = relations(colorPalettes, ({ many }) => ({
+  projects: many(projects),
+}));
+
 export const projects = sqliteTable("projects", {
   id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
   userId: integer("user_id")
@@ -27,7 +41,9 @@ export const projects = sqliteTable("projects", {
   completedAt: text("completed_at"),
   isCompleted: integer("is_completed").notNull().default(0),
   notes: text("notes"),
-  colors: text("colors").notNull().default("87CEEB,FF7F50,FFD700"),
+  colorPaletteId: integer("colorpalette_id")
+    .notNull()
+    .references(() => colorPalettes.id),
 });
 
 export type Project = InferModel<typeof projects, "select">;
@@ -38,11 +54,17 @@ export const projectsRelations = relations(projects, ({ many, one }) => ({
     fields: [projects.userId],
     references: [users.id],
   }),
+  colorPalette: one(colorPalettes, {
+    fields: [projects.colorPaletteId],
+    references: [colorPalettes.id],
+  }),
 }));
 
 export const tasks = sqliteTable("tasks", {
   id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
-  projectId: integer("project_id").references(() => projects.id),
+  projectId: integer("project_id")
+    .notNull()
+    .references(() => projects.id),
   description: text("description").notNull().default("new task"),
   type: text("type").notNull().default("to-do"),
   createdAt: text("created_at")
@@ -60,14 +82,18 @@ export const tasksRelations = relations(tasks, ({ one }) => ({
   }),
 }));
 
-export const taskSuggestions = sqliteTable("tasksuggestions", {
+export const taskSuggestions = sqliteTable("task_suggestions", {
   id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
   content: text("content"),
-  userId: integer("user_id").references(() => users.id),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id),
   createdAt: text("created_at")
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
-  taskId: integer("task_id").references(() => tasks.id),
+  taskId: integer("task_id")
+    .notNull()
+    .references(() => tasks.id),
   estimatedTime: integer("estimated_time"),
 });
 
