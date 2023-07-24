@@ -36,6 +36,7 @@ module.exports = {
       darkblue: "#242A59",
       fontblue: "#9DAFFF",
       black: "#121212",
+      lightred: "#FCABB9",
     },
     screens: {
       mobile: { max: "549px" },
