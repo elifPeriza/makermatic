@@ -99,24 +99,25 @@ export async function GET() {
       lastInsertedColorPalette.createdAt
     );
     if (
-      (!lastCreatedColorPaletteIsOlderThan24Hours && totalRows > 10) ||
+      (!lastCreatedColorPaletteIsOlderThan24Hours && totalRows > 20) ||
       totalRows > 25
     ) {
-      const randomColorPaletteStatement = sql`SELECT * FROM ${colorPalettes} WHERE rowid = (abs(random()) % (SELECT (SELECT max(rowid) FROM ${colorPalettes})+1)) OR rowid = (SELECT max(rowid) FROM ${colorPalettes}) ORDER BY rowid LIMIT 1`;
+      const randomColorPaletteStatement = sql`SELECT * FROM ${colorPalettes} ORDER BY random() LIMIT 1`;
 
       const randomColorPalette: {
         id: number;
         colors: string;
         created_at: string;
       } = await db.get(randomColorPaletteStatement);
+
       if (!randomColorPalette)
         return NextResponse.json({
           error: errorMessage,
         });
 
-      const parsedColorPalette = JSON.parse(randomColorPalette.colors);
+      const parsedRandomColorPalette = JSON.parse(randomColorPalette.colors);
 
-      return NextResponse.json(parsedColorPalette);
+      return NextResponse.json(parsedRandomColorPalette);
     }
   }
 

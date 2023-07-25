@@ -58,10 +58,17 @@ module.exports = {
           "0%": { opacity: 0 },
           "100%": { opacity: 1 },
         },
+        hueshift: {
+          "0%, 100%": { filter: "hue-rotate(0deg)" },
+          "25%": { filter: "hue-rotate(90deg)" },
+          "50%": { filter: "hue-rotate(180deg)" },
+          "75%": { filter: "hue-rotate(270deg)" },
+        },
       },
       animation: {
         wiggle: "wiggle 1s ease-in-out infinite",
         show: "show 2s 500ms 1 forwards",
+        hueshift: "hueshift 2s infinite",
       },
     },
   },
