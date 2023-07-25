@@ -242,10 +242,12 @@ export async function GET() {
     0.6
   ).catch((e) => console.log(e));
 
+  const errorMessage =
+    "Hey, our AI buddy seems to be sleeping right now, check back again later for new suggestions!";
+
   if (!newTaskSuggestion)
     return NextResponse.json({
-      error:
-        "Hey, our AI buddy seems to be sleeping right now, check back again later for new suggestions!",
+      error: errorMessage,
     });
 
   const suggestedTaskWithProjectRelation = await db.query.tasks.findFirst({
@@ -263,8 +265,7 @@ export async function GET() {
 
   if (!suggestedTaskUserId)
     return NextResponse.json({
-      error:
-        "Hey, our AI buddy seems to be sleeping right now, check back again later for new suggestions!",
+      error: errorMessage,
     });
 
   const taskValues = {
@@ -276,7 +277,7 @@ export async function GET() {
     createdAt: new Date().toISOString(),
   };
 
-  const updatedTaskSuggestion = await db
+  const [updatedTaskSuggestion] = await db
     .insert(taskSuggestions)
     .values(taskValues)
     .onConflictDoUpdate({ target: taskSuggestions.id, set: taskValues })
@@ -290,8 +291,8 @@ export async function GET() {
 
   if (!updatedTaskSuggestion)
     return NextResponse.json({
-      error:
-        "Hey, our AI buddy seems to be sleeping right now, check back again later for new suggestions!",
+      error: errorMessage,
     });
+
   return NextResponse.json(updatedTaskSuggestion);
 }

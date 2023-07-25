@@ -49,6 +49,20 @@ module.exports = {
         mono: ["var(--font-roboto-mono)"],
         logo: ["var(--font-vt323)"],
       },
+      keyframes: {
+        wiggle: {
+          "0%, 100%": { transform: "rotate(-10deg)" },
+          "50%": { transform: "rotate(10deg)" },
+        },
+        show: {
+          "0%": { opacity: 0 },
+          "100%": { opacity: 1 },
+        },
+      },
+      animation: {
+        wiggle: "wiggle 1s ease-in-out infinite",
+        show: "show 2s 500ms 1 forwards",
+      },
     },
   },
 };
