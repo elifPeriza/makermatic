@@ -1,7 +1,8 @@
 type ButtonProps = {
   variant: "primary" | "secondary";
   children: string;
-  onClick?: () => void;
+  onClick?: (event?: React.MouseEvent<HTMLButtonElement>) => void;
+  type?: "submit";
   disabled?: boolean;
 };
 
