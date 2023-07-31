@@ -6,7 +6,7 @@ import Logo from "./Logo";
 import NewProjectModal from "./NewProjectModal";
 
 export default function Header() {
-  let [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <>

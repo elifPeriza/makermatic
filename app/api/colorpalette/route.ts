@@ -98,9 +98,10 @@ export async function GET() {
     const lastCreatedColorPaletteIsOlderThan24Hours = isOlderThan24Hours(
       lastInsertedColorPalette.createdAt
     );
+
     if (
-      (!lastCreatedColorPaletteIsOlderThan24Hours && totalRows > 20) ||
-      totalRows > 25
+      (!lastCreatedColorPaletteIsOlderThan24Hours && totalRows > 10) ||
+      totalRows > 30
     ) {
       const randomColorPaletteStatement = sql`SELECT * FROM ${colorPalettes} ORDER BY random() LIMIT 1`;
 
@@ -117,7 +118,12 @@ export async function GET() {
 
       const parsedRandomColorPalette = JSON.parse(randomColorPalette.colors);
 
-      return NextResponse.json(parsedRandomColorPalette);
+      const formattedRandomColorPalette = {
+        id: randomColorPalette.id,
+        colors: parsedRandomColorPalette,
+      };
+
+      return NextResponse.json(formattedRandomColorPalette);
     }
   }
 
@@ -133,19 +139,25 @@ export async function GET() {
     });
 
   try {
-    await db
+    const [insertedNewColorPalette] = await db
       .insert(colorPalettes)
       .values({
         colors: JSON.stringify(newColorPalette),
       })
       .returning()
       .all();
+
+    const parsedNewColorPalette = JSON.parse(insertedNewColorPalette.colors);
+
+    const formattedNewColorPalette = {
+      id: insertedNewColorPalette.id,
+      colors: parsedNewColorPalette,
+    };
+    return NextResponse.json(formattedNewColorPalette);
   } catch (error) {
     console.log(error);
     return NextResponse.json({
       error: errorMessage,
     });
   }
-
-  return NextResponse.json(newColorPalette);
 }
