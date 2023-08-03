@@ -3,14 +3,7 @@ import { useState } from "react";
 import Button from "./Button";
 import { NewProjectInput } from "../validations/newProjectSchema";
 import { useRouter } from "next/navigation";
-
-type InputErrors = {
-  name?: string[];
-  description?: string[];
-  notes?: string[];
-};
-
-type InputName = keyof InputErrors;
+import useValiForm from "../hooks/useValiForm";
 
 type ColorPalette = {
   id?: number;
@@ -21,12 +14,6 @@ const defaultColorPalette = {
   colors: ["hsl(298, 29%, 43%)", "hsl(179, 39%, 54%)", "hsl(28, 77%, 56%)"],
 };
 
-const emptyFields = {
-  name: "",
-  description: "",
-  notes: "",
-};
-
 export default function NewProjectModal({
   handleModal,
   isModalOpen,
@@ -35,20 +22,15 @@ export default function NewProjectModal({
   isModalOpen: boolean;
 }) {
   const router = useRouter();
+  const { register, inputs, inputErrors, inputReset, handleSubmit, status } =
+    useValiForm(NewProjectInput);
   const [colorError, setColorError] = useState<undefined | string>(undefined);
   const [colorPalette, setColorPalette] =
     useState<ColorPalette>(defaultColorPalette);
-  const [isLoading, setIsLoading] = useState(false);
-  const [inputFields, setInputFields] = useState(emptyFields);
-  const [inputErrors, setInputErrors] = useState<InputErrors | undefined>(
-    undefined
-  );
-  const [createProjectStatus, setCreateProjectStatus] = useState<
-    "loading" | "success" | "error" | undefined
-  >();
+  const [isGeneratingPalette, setIsGeneratingPalette] = useState(false);
 
   const handleColorPaletteGeneration = async () => {
-    setIsLoading(true);
+    setIsGeneratingPalette(true);
     const response = await fetch("http://localhost:3000/api/colorpalette").then(
       (response) => response.json()
     );
@@ -58,7 +40,7 @@ export default function NewProjectModal({
     const [responseWithDelay] = await Promise.all([response, delay]);
 
     if (responseWithDelay.error) {
-      setIsLoading(false);
+      setIsGeneratingPalette(false);
       setColorError(response.error);
       return;
     }
@@ -70,7 +52,7 @@ export default function NewProjectModal({
     };
 
     if (!randomColorPalette) {
-      setIsLoading(false);
+      setIsGeneratingPalette(false);
       setColorError(
         "Oops, something went wrong, try again or select the current palette. No worries, you can change it later!"
       );
@@ -79,71 +61,26 @@ export default function NewProjectModal({
 
     setColorPalette(randomColorPalette);
     setColorError(undefined);
-    setIsLoading(false);
+    setIsGeneratingPalette(false);
   };
 
-  const handleInputChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const inputValue = event.target.value;
-    const inputName: InputName = event.target.name as InputName;
-    setInputFields((prevInputs) => ({
-      ...prevInputs,
-      [inputName]: inputValue,
-    }));
+  const createNewProject = () => {
+    const keys = Object.keys(inputs);
+    const formattedInputs = keys.reduce((acc, curr) => {
+      return { ...acc, [curr]: inputs[curr].value };
+    }, {});
 
-    const result = NewProjectInput.safeParse({
-      ...inputFields,
-      [inputName]: inputValue,
-    });
-    if (inputErrors?.[inputName]) {
-      if (result.success) setInputErrors(undefined);
-      else {
-        const zodErrorMessages = result.error.flatten().fieldErrors;
-        setInputErrors(zodErrorMessages);
-      }
-    }
-  };
-
-  const handleSubmit = async (
-    event: React.FormEvent<HTMLFormElement> | undefined
-  ) => {
-    if (event) event.preventDefault();
-
-    const result = NewProjectInput.safeParse(inputFields);
-    if (!result.success) {
-      const zodErrorMessages = result.error.flatten().fieldErrors;
-      setInputErrors(zodErrorMessages);
-      return;
-    }
-    setCreateProjectStatus("loading");
-
-    const response = await fetch("http://localhost:3000/api/newproject", {
+    return fetch("http://localhost:3000/api/newproject", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        ...inputFields,
+        ...formattedInputs,
         colorPaletteId: colorPalette.id || 1,
         userId: 1,
       }),
     });
-
-    const responseBody = await response.json();
-
-    if (!response.ok) {
-      setCreateProjectStatus("error");
-      const error = responseBody.error;
-      console.log(error);
-      if (error.type === "zod") {
-        setInputErrors(error.zodErrorMessages);
-      } else {
-        setInputErrors(undefined);
-      }
-    } else {
-      setCreateProjectStatus("success");
-    }
   };
 
   return (
@@ -154,9 +91,7 @@ export default function NewProjectModal({
           handleModal(false);
           setColorError(undefined);
           setColorPalette(defaultColorPalette);
-          setInputFields(emptyFields);
-          setInputErrors(undefined);
-          setCreateProjectStatus(undefined);
+          inputReset();
         }}
         className="relative z-50"
       >
@@ -174,145 +109,138 @@ export default function NewProjectModal({
                   New Project
                 </Dialog.Title>
 
-                {createProjectStatus !== "success" &&
-                  createProjectStatus !== "loading" && (
-                    <form className="flex flex-col" onSubmit={handleSubmit}>
-                      <label className="font-medium" htmlFor="name">
-                        Name:
-                      </label>
-                      <input
-                        name="name"
-                        value={inputFields.name}
-                        onChange={handleInputChange}
-                        type="text"
-                        id="name"
-                        className="mb-1 h-8 rounded-md border border-lightblue bg-darkblue p-2"
-                      ></input>
-                      <div className="mb-3 flex flex-row justify-between">
-                        {inputErrors?.name ? (
-                          <p className=" text-lightred">
-                            {inputErrors.name.map((error) => error)}
-                          </p>
-                        ) : (
-                          <div></div>
-                        )}
-                        <p className="self-start text-xs">
-                          {inputFields.name.length}/50
+                {status !== "success" && status !== "loading" && (
+                  <form
+                    className="flex flex-col"
+                    onSubmit={(event) => {
+                      handleSubmit(event, createNewProject);
+                    }}
+                  >
+                    <label className="font-medium" htmlFor="name">
+                      Name:
+                    </label>
+                    <input
+                      {...register("name")}
+                      type="text"
+                      className="mb-1 h-8 rounded-md border border-lightblue bg-darkblue p-2"
+                    ></input>
+                    <div className="mb-3 flex flex-row justify-between">
+                      {inputErrors?.name ? (
+                        <p className=" text-lightred">
+                          {inputErrors.name.map((error) => error)}
                         </p>
-                      </div>
+                      ) : (
+                        <div></div>
+                      )}
+                      <p className=" ml-4 self-start text-xs">
+                        {inputs.name.value.length}/50
+                      </p>
+                    </div>
 
-                      <label htmlFor="description" className="font-medium">
-                        Description (optional):
-                      </label>
-                      <textarea
-                        name="description"
-                        value={inputFields.description}
-                        id="description"
-                        className="mb-1 h-14 min-h-[32px] rounded-md border border-lightblue bg-darkblue p-2"
-                        onChange={handleInputChange}
-                      ></textarea>
-                      <div className="mb-6 flex flex-row justify-between">
-                        {inputErrors?.description ? (
-                          <p className=" text-lightred">
-                            {inputErrors.description.map((error) => error)}
-                          </p>
-                        ) : (
-                          <div></div>
-                        )}
-                        <p className="self-start text-xs">
-                          {inputFields.description.length}/200
+                    <label htmlFor="description" className="font-medium">
+                      Description (optional):
+                    </label>
+                    <textarea
+                      {...register("description")}
+                      className="mb-1 h-14 min-h-[32px] rounded-md border border-lightblue bg-darkblue p-2"
+                    ></textarea>
+                    <div className="mb-6 flex flex-row justify-between">
+                      {inputErrors?.description ? (
+                        <p className=" text-lightred">
+                          {inputErrors.description.map((error) => error)}
                         </p>
-                      </div>
-                      <div className="flex flex-col gap-6">
-                        <h3 className="font-medium">
-                          Color palette generated by your task buddy:
-                        </h3>
+                      ) : (
+                        <div></div>
+                      )}
+                      <p className="self-start text-xs">
+                        {inputs.description.value.length}/200
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-6">
+                      <h3 className="font-medium">
+                        Color palette generated by your task buddy:
+                      </h3>
 
-                        <div className="flex flex-row self-center">
-                          {colorPalette.colors.map((color) => (
-                            <div
-                              key={color}
-                              className={`h-[24px] w-[24px] rounded-[5px]  ${
-                                isLoading ? "animate-hueshift" : ""
-                              }`}
-                              style={{ backgroundColor: color }}
-                            ></div>
-                          ))}
-                        </div>
-
-                        {colorError && (
-                          <p className="max-w-xs self-center text-center text-lightred">
-                            {colorError}
-                          </p>
-                        )}
-
-                        <div className="mb-10 flex flex-row justify-center gap-6">
-                          <Button
-                            onClick={handleColorPaletteGeneration}
-                            variant="primary"
-                            disabled={isLoading}
-                          >
-                            {isLoading
-                              ? "generating..."
-                              : "generate new palette"}
-                          </Button>
-                        </div>
+                      <div className="flex flex-row self-center">
+                        {colorPalette.colors.map((color) => (
+                          <div
+                            key={color}
+                            className={`h-[24px] w-[24px] rounded-[5px]  ${
+                              isGeneratingPalette ? "animate-hueshift" : ""
+                            }`}
+                            style={{ backgroundColor: color }}
+                          ></div>
+                        ))}
                       </div>
-                      <label htmlFor="notes" className="font-medium">
-                        Notes (optional):
-                      </label>
-                      <textarea
-                        name="notes"
-                        value={inputFields.notes}
-                        id="notes"
-                        className="mb-1 h-32 min-h-[32px] rounded-md border border-lightblue bg-darkblue p-2"
-                        onChange={handleInputChange}
-                      ></textarea>
-                      <div className="mb-3 flex flex-row justify-between">
-                        {inputErrors?.notes ? (
-                          <p className=" text-lightred">
-                            {inputErrors.notes.map((error) => error)}
-                          </p>
-                        ) : (
-                          <div></div>
-                        )}
-                        <p className="self-start text-xs">
-                          {inputFields.notes.length}/500
-                        </p>
-                      </div>
-                      {createProjectStatus === "error" && !inputErrors && (
-                        <p className="text-lightred">
-                          Something went wrong, try again!
+
+                      {colorError && (
+                        <p className="max-w-xs self-center text-center text-lightred">
+                          {colorError}
                         </p>
                       )}
 
-                      <div className=" flex flex-row justify-end gap-6 ">
+                      <div className="mb-10 flex flex-row justify-center gap-6">
                         <Button
-                          variant="secondary"
-                          onClick={() => {
-                            handleModal(false);
-                            setColorError(undefined);
-                            setColorPalette(defaultColorPalette);
-                            setInputFields(emptyFields);
-                            setInputErrors(undefined);
-                            setCreateProjectStatus(undefined);
-                          }}
+                          onClick={handleColorPaletteGeneration}
+                          variant="primary"
+                          disabled={isGeneratingPalette}
                         >
-                          Cancel
-                        </Button>
-                        <Button variant="primary" type="submit">
-                          Create Project
+                          {isGeneratingPalette
+                            ? "generating..."
+                            : "generate new palette"}
                         </Button>
                       </div>
-                    </form>
-                  )}
-                {createProjectStatus === "loading" && (
+                    </div>
+                    <label htmlFor="notes" className="font-medium">
+                      Notes (optional):
+                    </label>
+                    <textarea
+                      {...register("notes")}
+                      className="mb-1 h-32 min-h-[32px] rounded-md border border-lightblue bg-darkblue p-2"
+                    ></textarea>
+                    <div className="mb-3 flex flex-row justify-between">
+                      {inputErrors?.notes ? (
+                        <p className=" text-lightred">
+                          {inputErrors.notes.map((error) => error)}
+                        </p>
+                      ) : (
+                        <div></div>
+                      )}
+                      <p className="self-start text-xs">
+                        {inputs.notes.value.length}/500
+                      </p>
+                    </div>
+                    {status === "error" && !inputErrors && (
+                      <p className="text-lightred">
+                        Something went wrong, try again!
+                      </p>
+                    )}
+
+                    <div className=" flex flex-row justify-end gap-6 ">
+                      <Button
+                        variant="secondary"
+                        onClick={() => {
+                          handleModal(false);
+                          setColorError(undefined);
+                          setColorPalette(defaultColorPalette);
+                          inputReset();
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button variant="primary" type="submit">
+                        Create Project
+                      </Button>
+                    </div>
+                  </form>
+                )}
+                {status === "loading" && (
                   <p className="text-center">Creating new project...</p>
                 )}
-                {createProjectStatus === "success" && (
+                {status === "success" && (
                   <div className="flex flex-col items-center justify-center gap-8">
                     <p className="text-center text-brightgreen">
-                      {`Congrats! New project "${inputFields.name}" was created!`}
+                      {`Congrats! New project "${inputs.name.value}" was created!`}
                     </p>
                     <Button
                       variant="primary"
@@ -320,11 +248,9 @@ export default function NewProjectModal({
                         router.push("/");
                         router.refresh();
                         handleModal(false);
-                        setCreateProjectStatus(undefined);
-                        setInputFields(emptyFields);
-                        setInputErrors(undefined);
                         setColorError(undefined);
                         setColorPalette(defaultColorPalette);
+                        inputReset();
                       }}
                     >
                       Go to Projects
