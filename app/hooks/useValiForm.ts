@@ -1,42 +1,39 @@
 import { useState } from "react";
 import { z } from "zod";
 
-type ZodObjectType = ReturnType<typeof z.object>;
+type InputErrors = Record<string, string[] | undefined>;
 
-type InputProps = {
-  name: string;
-  value: string;
-  id: string;
-};
-type Inputs = Record<string, InputProps>;
-
-type InputErrors = {
-  name?: string[];
-  description?: string[];
-  notes?: string[];
-};
-
-type InputName = keyof InputErrors;
-
-const createInitialInputObjectFromSchema = (
-  validationSchema: ZodObjectType
+const createInitialInputObjectFromSchema = <
+  InputType extends Record<string, any>
+>(
+  schema: z.ZodObject<any>,
+  initialValues?: Partial<InputType>
 ) => {
-  const validationSchemaKeys = Object.keys(validationSchema.shape);
-
+  const validationSchemaKeys = Object.keys(schema.shape);
   const inputsInitial = validationSchemaKeys.reduce((acc, curr) => {
     return {
       ...acc,
-      [curr]: { name: curr, value: "", id: curr },
+      [curr]: initialValues?.[curr] ?? "",
     };
-  }, {} as Inputs);
+  }, {} as InputType);
 
   return inputsInitial;
 };
 
-export default function useValiForm(validationSchema: ZodObjectType) {
-  const inputsInitial = createInitialInputObjectFromSchema(validationSchema);
+export default function useValiForm<
+  InputSchema extends z.ZodObject<any>,
+  InputType extends Record<string, any>
+>(
+  validationSchema: InputSchema,
+  onSubmitRequest: (values: InputType) => Promise<any> | any,
+  initialValues?: Partial<InputType>
+) {
+  const inputsInitial = createInitialInputObjectFromSchema<InputType>(
+    validationSchema,
+    initialValues
+  );
 
-  const [inputFields, setInputFields] = useState(inputsInitial);
+  const [inputs, setInputs] = useState<InputType>(inputsInitial);
   const [inputErrors, setInputErrors] = useState<InputErrors | undefined>(
     undefined
   );
@@ -48,15 +45,15 @@ export default function useValiForm(validationSchema: ZodObjectType) {
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const inputValue = event.target.value;
-    const inputName: InputName = event.target.name as InputName;
-    setInputFields((prevInputs) => ({
+    const inputName = event.target.name;
+    setInputs((prevInputs) => ({
       ...prevInputs,
-      [inputName]: { ...prevInputs[inputName], value: inputValue },
+      [inputName]: inputValue,
     }));
 
     const validationResult = validationSchema.safeParse({
-      ...inputFields,
-      [inputName]: { ...inputFields[inputName], value: inputValue },
+      ...inputs,
+      [inputName]: inputValue,
     });
 
     if (inputErrors?.[inputName]) {
@@ -69,22 +66,24 @@ export default function useValiForm(validationSchema: ZodObjectType) {
     }
   };
 
-  const register = (key: string) => {
-    return { ...inputFields[key], onChange: handleInputChange };
+  const register = (key: keyof InputType) => {
+    return {
+      name: key,
+      id: key,
+      value: inputs[key],
+      onChange: handleInputChange,
+    };
   };
 
   const inputReset = () => {
     setInputErrors(undefined);
-    setInputFields(inputsInitial);
+    setInputs(inputsInitial);
     setStatus(undefined);
   };
 
-  const handleSubmit = async (
-    event: React.FormEvent<HTMLFormElement>,
-    onSubmitRequest: () => Promise<Response>
-  ) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const validationResult = validationSchema.safeParse(inputFields);
+    const validationResult = validationSchema.safeParse(inputs);
     if (!validationResult.success) {
       const zodErrorMessages = validationResult.error.flatten().fieldErrors;
       setInputErrors(zodErrorMessages);
@@ -93,7 +92,7 @@ export default function useValiForm(validationSchema: ZodObjectType) {
 
     setStatus("loading");
 
-    const response = await onSubmitRequest();
+    const response = await onSubmitRequest(inputs);
 
     const responseBody = await response.json();
     if (!response.ok) {
@@ -112,7 +111,7 @@ export default function useValiForm(validationSchema: ZodObjectType) {
 
   return {
     register,
-    inputs: inputFields,
+    inputs,
     inputErrors,
     handleSubmit,
     inputReset,

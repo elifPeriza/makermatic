@@ -1,7 +1,11 @@
 import { Dialog } from "@headlessui/react";
 import { useState } from "react";
 import Button from "./Button";
-import { NewProjectInput } from "../validations/newProjectSchema";
+import {
+  NewProjectInput,
+  NewProjectInputType,
+  NewProjectSchema,
+} from "../validations/newProjectSchema";
 import { useRouter } from "next/navigation";
 import useValiForm from "../hooks/useValiForm";
 
@@ -14,6 +18,23 @@ const defaultColorPalette = {
   colors: ["hsl(298, 29%, 43%)", "hsl(179, 39%, 54%)", "hsl(28, 77%, 56%)"],
 };
 
+const createNewProject = (
+  inputs: NewProjectInputType,
+  colorPalette: ColorPalette
+) => {
+  return fetch("http://localhost:3000/api/newproject", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      ...inputs,
+      colorPaletteId: colorPalette.id || 1,
+      userId: 1,
+    }),
+  });
+};
+
 export default function NewProjectModal({
   handleModal,
   isModalOpen,
@@ -22,13 +43,16 @@ export default function NewProjectModal({
   isModalOpen: boolean;
 }) {
   const router = useRouter();
-  const { register, inputs, inputErrors, inputReset, handleSubmit, status } =
-    useValiForm(NewProjectInput);
   const [colorError, setColorError] = useState<undefined | string>(undefined);
   const [colorPalette, setColorPalette] =
     useState<ColorPalette>(defaultColorPalette);
   const [isGeneratingPalette, setIsGeneratingPalette] = useState(false);
 
+  const { register, inputs, inputErrors, inputReset, handleSubmit, status } =
+    useValiForm<NewProjectSchema, NewProjectInputType>(
+      NewProjectInput,
+      (inputs) => createNewProject(inputs, colorPalette)
+    );
   const handleColorPaletteGeneration = async () => {
     setIsGeneratingPalette(true);
     const response = await fetch("http://localhost:3000/api/colorpalette").then(
@@ -64,25 +88,6 @@ export default function NewProjectModal({
     setIsGeneratingPalette(false);
   };
 
-  const createNewProject = () => {
-    const keys = Object.keys(inputs);
-    const formattedInputs = keys.reduce((acc, curr) => {
-      return { ...acc, [curr]: inputs[curr].value };
-    }, {});
-
-    return fetch("http://localhost:3000/api/newproject", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        ...formattedInputs,
-        colorPaletteId: colorPalette.id || 1,
-        userId: 1,
-      }),
-    });
-  };
-
   return (
     <>
       <Dialog
@@ -110,12 +115,7 @@ export default function NewProjectModal({
                 </Dialog.Title>
 
                 {status !== "success" && status !== "loading" && (
-                  <form
-                    className="flex flex-col"
-                    onSubmit={(event) => {
-                      handleSubmit(event, createNewProject);
-                    }}
-                  >
+                  <form className="flex flex-col" onSubmit={handleSubmit}>
                     <label className="font-medium" htmlFor="name">
                       Name:
                     </label>
@@ -133,7 +133,7 @@ export default function NewProjectModal({
                         <div></div>
                       )}
                       <p className=" ml-4 self-start text-xs">
-                        {inputs.name.value.length}/50
+                        {inputs.name.length}/50
                       </p>
                     </div>
 
@@ -153,7 +153,7 @@ export default function NewProjectModal({
                         <div></div>
                       )}
                       <p className="self-start text-xs">
-                        {inputs.description.value.length}/200
+                        {inputs.description?.length ?? 0}/200
                       </p>
                     </div>
                     <div className="flex flex-col gap-6">
@@ -207,7 +207,7 @@ export default function NewProjectModal({
                         <div></div>
                       )}
                       <p className="self-start text-xs">
-                        {inputs.notes.value.length}/500
+                        {inputs.notes?.length ?? 0}/500
                       </p>
                     </div>
                     {status === "error" && !inputErrors && (
@@ -240,7 +240,7 @@ export default function NewProjectModal({
                 {status === "success" && (
                   <div className="flex flex-col items-center justify-center gap-8">
                     <p className="text-center text-brightgreen">
-                      {`Congrats! New project "${inputs.name.value}" was created!`}
+                      {`Congrats! New project "${inputs.name}" was created!`}
                     </p>
                     <Button
                       variant="primary"
