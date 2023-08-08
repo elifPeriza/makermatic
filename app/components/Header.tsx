@@ -11,7 +11,7 @@ export default function Header() {
   return (
     <>
       <header>
-        <div className=" mt-5 flex flex-row md:mt-8">
+        <div className="flex flex-row">
           <Logo />
           <nav className="ml-auto mobile:hidden sm:hidden md:block">
             <Button onClick={() => setIsModalOpen(true)} variant="primary">

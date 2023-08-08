@@ -35,7 +35,11 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${vt323.variable} ${roboto_mono.variable} `}
     >
-      <body>{children}</body>
+      <body>
+        <main className="mx-auto max-w-[1600px] px-[5%] pt-5 md:pt-8">
+          {children}
+        </main>
+      </body>
     </html>
   );
 }
