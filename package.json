@@ -27,7 +27,7 @@
     "drizzle-orm": "^0.27.0",
     "eslint": "8.38.0",
     "eslint-config-next": "^13.4.1",
-    "lucide-react": "^0.264.0",
+    "lucide-react": "0.263.1",
     "next": "^13.4.2-canary.5",
     "openai": "^3.3.0",
     "postcss": "8.4.21",
