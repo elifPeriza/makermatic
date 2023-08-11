@@ -133,8 +133,8 @@ export default function TabBar({
 
               <textarea
                 readOnly={!isEditMode}
-                onClick={() => {
-                  inputReset();
+                onFocus={() => {
+                  status === "success" && inputReset();
                   !isEditMode && setIsEditMode(true);
                 }}
                 {...register("notes")}
