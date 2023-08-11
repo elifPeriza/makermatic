@@ -73,7 +73,7 @@ export const tasks = sqliteTable("tasks", {
   completedAt: text("completed_at"),
   isCompleted: integer("is_completed").notNull().default(0),
 });
-export type Tasks = InferModel<typeof tasks, "select">;
+export type Task = InferModel<typeof tasks, "select">;
 
 export const tasksRelations = relations(tasks, ({ one }) => ({
   project: one(projects, {

@@ -3,37 +3,16 @@ import { z } from "zod";
 
 type InputErrors = Record<string, string[] | undefined>;
 
-const createInitialInputObjectFromSchema = <
-  InputType extends Record<string, any>
->(
-  schema: z.ZodObject<any>,
-  initialValues?: Partial<InputType>
-) => {
-  const validationSchemaKeys = Object.keys(schema.shape);
-  const inputsInitial = validationSchemaKeys.reduce((acc, curr) => {
-    return {
-      ...acc,
-      [curr]: initialValues?.[curr] ?? "",
-    };
-  }, {} as InputType);
-
-  return inputsInitial;
-};
-
 export default function useValiForm<
   InputSchema extends z.ZodObject<any>,
   InputType extends Record<string, any>
 >(
   validationSchema: InputSchema,
   onSubmitRequest: (values: InputType) => Promise<any> | any,
-  initialValues?: Partial<InputType>
+  initialValues?: Partial<InputType>,
+  onSuccess?: () => void
 ) {
-  const inputsInitial = createInitialInputObjectFromSchema<InputType>(
-    validationSchema,
-    initialValues
-  );
-
-  const [inputs, setInputs] = useState<InputType>(inputsInitial);
+  const [inputs, setInputs] = useState<Partial<InputType>>(initialValues || {});
   const [inputErrors, setInputErrors] = useState<InputErrors | undefined>(
     undefined
   );
@@ -61,6 +40,7 @@ export default function useValiForm<
         setInputErrors(undefined);
       } else {
         const zodErrorMessages = validationResult.error.flatten().fieldErrors;
+
         setInputErrors(zodErrorMessages);
       }
     }
@@ -77,22 +57,24 @@ export default function useValiForm<
 
   const inputReset = () => {
     setInputErrors(undefined);
-    setInputs(inputsInitial);
+    setInputs(initialValues || {});
     setStatus(undefined);
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const validationResult = validationSchema.safeParse(inputs);
+
     if (!validationResult.success) {
       const zodErrorMessages = validationResult.error.flatten().fieldErrors;
+
       setInputErrors(zodErrorMessages);
       return;
     }
 
     setStatus("loading");
 
-    const response = await onSubmitRequest(inputs);
+    const response = await onSubmitRequest(inputs as InputType);
 
     const responseBody = await response.json();
     if (!response.ok) {
@@ -106,6 +88,7 @@ export default function useValiForm<
       }
     } else {
       setStatus("success");
+      onSuccess?.();
     }
   };
 

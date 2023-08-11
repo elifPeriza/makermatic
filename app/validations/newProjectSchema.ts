@@ -26,7 +26,7 @@ export const NewProjectInput = z.object({
     .or(z.literal("")),
   notes: z
     .string()
-    .max(500, {
+    .max(1000, {
       message:
         "Your notes are a bit too long. Let's keep them under 500 characters.",
     })
@@ -64,9 +64,13 @@ export const NewProjectInsert = z.object({
     .or(z.literal("")),
   notes: z
     .string()
-    .max(500, {
+    .max(1000, {
       message:
         "Your notes are a bit too long. Let's keep them under 500 characters.",
     })
     .optional(),
 });
+
+export const ProjectUpdate = NewProjectInput.partial();
+export type ProjectUpdateType = z.infer<typeof ProjectUpdate>;
+export type ProjectUpdateSchema = typeof ProjectUpdate;

@@ -22,7 +22,7 @@ const createNewProject = (
   inputs: NewProjectInputType,
   colorPalette: ColorPalette
 ) => {
-  return fetch("http://localhost:3000/api/newproject", {
+  return fetch("http://localhost:3000/api/project", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -133,7 +133,7 @@ export default function NewProjectModal({
                         <div></div>
                       )}
                       <p className=" ml-4 self-start text-xs">
-                        {inputs.name.length}/50
+                        {inputs.name?.length ?? 0}/50
                       </p>
                     </div>
 
@@ -207,7 +207,7 @@ export default function NewProjectModal({
                         <div></div>
                       )}
                       <p className="self-start text-xs">
-                        {inputs.notes?.length ?? 0}/500
+                        {inputs.notes?.length ?? 0}/1000
                       </p>
                     </div>
                     {status === "error" && !inputErrors && (

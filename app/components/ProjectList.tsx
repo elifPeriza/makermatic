@@ -5,6 +5,7 @@ import Emoji from "./Emoji";
 import Tag from "./Tag";
 import { TagLabel } from "../types/Tags";
 import { Project } from "@/db/schema";
+import { useRouter } from "next/navigation";
 
 type ProjectListProps = {
   projects: Project[];
@@ -24,7 +25,7 @@ const tags: Tag[] = [
 
 export default function ProjectList({ projects }: ProjectListProps) {
   const [selectedTag, setSelectedTag] = useState<TagLabel>("all");
-
+  const router = useRouter();
   const filterProjects = (tagLabel: TagLabel, projects: Project[]) => {
     if (tagLabel === "all") return projects;
     return projects.filter(({ isCompleted }) =>
@@ -59,10 +60,13 @@ export default function ProjectList({ projects }: ProjectListProps) {
           {filteredProjects.map((project, i) => {
             return (
               <div
+                role="button"
+                tabIndex={i + 1}
                 key={project.id}
+                onClick={() => router.push(`/projects/${project.id}`)}
                 className={`group flex
-                       h-24 min-w-[140px] cursor-pointer
-                   flex-col justify-center rounded-[10px] border border-lightblue bg-darkblue hover:bg-softgreen mobile:w-[calc(100%/2)] mobile:nth-[3n+3]:mx-10 sm:w-[calc(100%/3)] sm:nth-[5n+4]:ml-10 sm:nth-[5n+5]:mr-10   `}
+                     h-24 min-w-[140px] cursor-pointer
+                 flex-col justify-center rounded-[10px] border border-lightblue bg-darkblue hover:bg-softgreen mobile:w-[calc(100%/2)] mobile:nth-[3n+3]:mx-10 sm:w-[calc(100%/3)] sm:nth-[5n+4]:ml-10 sm:nth-[5n+5]:mr-10   `}
               >
                 <p
                   className={` p-3 text-center font-mono font-medium text-fontblue group-hover:text-darkblue `}
