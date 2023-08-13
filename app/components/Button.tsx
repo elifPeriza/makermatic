@@ -21,7 +21,7 @@ export default function Button({
     <button
       disabled={disabled}
       onClick={onClick}
-      className={` ${variants[variant]} w-fit  cursor-pointer rounded-[5px] border px-3 py-1 font-sans text-base font-semibold transition-all duration-200 hover:shadow-md hover:brightness-[0.87] hover:contrast-[1.15] hover:drop-shadow-sm hover:saturate-[1.2]  hover:filter disabled:opacity-60 `}
+      className={` ${variants[variant]} h-[34px] w-fit  cursor-pointer rounded-[5px] border px-3 py-1 font-sans text-base font-semibold transition-all duration-200 hover:shadow-md hover:brightness-[0.87] hover:contrast-[1.15] hover:drop-shadow-sm hover:saturate-[1.2]  hover:filter disabled:opacity-60 `}
     >
       {children}
     </button>
