@@ -92,14 +92,14 @@ export default function TabBar({
               className="mt-8 flex flex-col gap-3 text-base"
               onSubmit={handleSubmit}
             >
-              <div className="flex flex-row justify-end gap-6">
+              <div className="flex flex-row items-center justify-end gap-6">
                 {status === "success" && (
                   <div className="flex flex-row items-center justify-end gap-3">
                     <p className="text-brightgreen">saved</p>
                     <CheckCheck className="stroke-brightgreen" />
                   </div>
                 )}
-                {isEditMode && status !== "success" ? (
+                {isEditMode && status !== "success" && status !== "error" ? (
                   <>
                     {status === undefined && (
                       <button
@@ -130,6 +130,16 @@ export default function TabBar({
                   </div>
                 )}
               </div>
+              {inputErrors?.notes && (
+                <p className=" text-lightred">
+                  {inputErrors.notes.map((error) => error)}
+                </p>
+              )}
+              {status === "error" && !inputErrors && (
+                <p className="text-lightred">
+                  Something went wrong, try again!
+                </p>
+              )}
 
               <textarea
                 readOnly={!isEditMode}
@@ -145,22 +155,12 @@ export default function TabBar({
             </form>
 
             <div className="mb-3 flex flex-row justify-between">
-              {inputErrors?.notes ? (
-                <p className=" text-lightred">
-                  {inputErrors.notes.map((error) => error)}
-                </p>
-              ) : (
-                <div></div>
-              )}
               {isEditMode && (
                 <p className="self-start text-xs">
                   {inputs.notes?.length ?? 0}/1000
                 </p>
               )}
             </div>
-            {status === "error" && !inputErrors && (
-              <p className="text-lightred">Something went wrong, try again!</p>
-            )}
           </Tab.Panel>
         </Tab.Panels>
       </Tab.Group>

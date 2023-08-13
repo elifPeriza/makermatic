@@ -29,7 +29,7 @@ export const NewProjectInsert = z.object({
     .string()
     .max(1000, {
       message:
-        "Your notes are a bit too long. Let's keep them under 500 characters.",
+        "Your notes are a bit too long. Let's keep them under 1000 characters.",
     })
     .optional(),
 });
