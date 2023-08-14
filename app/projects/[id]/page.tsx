@@ -1,10 +1,11 @@
 import TabBar from "@/app/components/TabBar";
 import { db } from "@/db/drizzle";
-import { projects } from "@/db/schema";
+import { ProjectWithTasks, projects } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { ArrowLeft, Pencil } from "lucide-react";
 import Link from "next/link";
 import { unstable_cache } from "next/cache";
+import { ProjectContentCategories } from "@/app/types/Project";
 
 const getProjectByID = async (id: string) =>
   await unstable_cache(
@@ -25,6 +26,18 @@ const getProjectByID = async (id: string) =>
     { tags: [`project/${id}`], revalidate: 600 }
   )();
 
+const createProjectDataTabBar = async (project: ProjectWithTasks) => {
+  const tasks = project.tasks.filter((todo) => todo.type === "to-do");
+  const materialTasks = project.tasks.filter(
+    (todo) => todo.type === "material"
+  );
+  const notes = project.notes;
+  const projectContent = { tasks, materialTasks, notes };
+  const options: ProjectContentCategories[] = ["tasks", "materials", "notes"];
+
+  return { projectContent, options };
+};
+
 export default async function ProjectPage({
   params,
 }: {
@@ -33,6 +46,7 @@ export default async function ProjectPage({
   const project = await getProjectByID(params.id);
   const taskCount = project.tasks.length;
   const taskCountArray = Array.from({ length: taskCount }, (_, i) => i + 1);
+  const { projectContent, options } = await createProjectDataTabBar(project);
 
   return (
     <>
@@ -71,11 +85,7 @@ export default async function ProjectPage({
             </div>
           </div>
 
-          <TabBar
-            data={project}
-            options={["todo's", "materials", "notes"]}
-            id={params.id}
-          />
+          <TabBar content={projectContent} options={options} id={params.id} />
         </>
       )}
     </>

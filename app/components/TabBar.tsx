@@ -1,7 +1,6 @@
 "use client";
 
 import { Tab } from "@headlessui/react";
-import { Task } from "@/db/schema";
 import TodoList from "./TodoList";
 import useValiForm from "../hooks/useValiForm";
 import {
@@ -14,13 +13,12 @@ import Button from "./Button";
 import { classNames } from "../utils/classNames";
 import { CheckCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { ProjectContent, ProjectContentCategories } from "../types/Project";
 
-const createTasksData = (todos: Task[]) => {
-  const taskCount = todos.length;
-  const tasks = todos.filter((todo) => todo.type === "to-do");
-  const materialTasks = todos.filter((todo) => todo.type === "material");
-
-  return { taskCount, tasks, materialTasks };
+type ProjectTabBarProps = {
+  id: string;
+  content: ProjectContent;
+  options: ProjectContentCategories[];
 };
 
 const updateProject = (updatedInputs: ProjectUpdateType, id: string) => {
@@ -33,26 +31,20 @@ const updateProject = (updatedInputs: ProjectUpdateType, id: string) => {
   });
 };
 
-export default function TabBar({
-  data,
-  options,
+export default function ProjectTabBar({
+  content,
   id,
-}: {
-  data: any;
-  options: string[];
-  id: string;
-}) {
-  const notes = data.notes;
+  options,
+}: ProjectTabBarProps) {
+  const notes = content.notes;
   const router = useRouter();
   const [isEditMode, setIsEditMode] = useState(false);
-
-  const { tasks, materialTasks } = createTasksData(data.tasks);
 
   const { register, inputs, inputErrors, inputReset, handleSubmit, status } =
     useValiForm<ProjectUpdateSchema, ProjectUpdateType>(
       ProjectUpdate,
       (inputs) => updateProject({ notes: inputs.notes }, id),
-      { notes },
+      { notes: notes ?? undefined },
       () => {
         setIsEditMode(false);
         router.refresh();
@@ -82,10 +74,10 @@ export default function TabBar({
         </Tab.List>
         <Tab.Panels className="px-2">
           <Tab.Panel>
-            <TodoList initialTasks={tasks} />
+            <TodoList initialTasks={content.tasks} />
           </Tab.Panel>
           <Tab.Panel>
-            <TodoList initialTasks={materialTasks} />
+            <TodoList initialTasks={content.materialTasks} />
           </Tab.Panel>
           <Tab.Panel className="font-sans text-white">
             <form

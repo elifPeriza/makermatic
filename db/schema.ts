@@ -112,3 +112,7 @@ export const taskSuggestionsRelations = relations(
     }),
   })
 );
+
+export type ProjectWithTasks = InferModel<typeof projects, "select"> & {
+  tasks: Task[];
+};
