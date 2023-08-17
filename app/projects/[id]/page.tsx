@@ -6,6 +6,7 @@ import { ArrowLeft, Pencil } from "lucide-react";
 import Link from "next/link";
 import { unstable_cache } from "next/cache";
 import { ProjectContentCategories } from "@/app/types/Project";
+import ProgressDisplay from "@/app/components/ProgressDisplay";
 
 const getProjectByID = async (id: string) =>
   await unstable_cache(
@@ -14,6 +15,11 @@ const getProjectByID = async (id: string) =>
         where: eq(projects.id, parseInt(id)),
         with: {
           tasks: true,
+          colorPalette: {
+            columns: {
+              colors: true,
+            },
+          },
         },
       });
       if (!projectWithTodos) {
@@ -44,9 +50,9 @@ export default async function ProjectPage({
   params: { id: string };
 }) {
   const project = await getProjectByID(params.id);
-  const taskCount = project.tasks.length;
-  const taskCountArray = Array.from({ length: taskCount }, (_, i) => i + 1);
+
   const { projectContent, options } = await createProjectDataTabBar(project);
+  const colors = JSON.parse(project.colorPalette.colors);
 
   return (
     <>
@@ -74,16 +80,7 @@ export default async function ProjectPage({
             />
           </div>
 
-          <div className="mt-8 flex justify-center ">
-            <div className=" flex w-[200px] flex-wrap items-center justify-center ">
-              {taskCountArray.map((_, index) => (
-                <div
-                  key={index}
-                  className="h-[24px] w-[24px] rounded-[5px] border border-lightblue bg-darkblue"
-                ></div>
-              ))}
-            </div>
-          </div>
+          <ProgressDisplay tasks={project.tasks} colors={colors} />
 
           <TabBar content={projectContent} options={options} id={params.id} />
         </>
