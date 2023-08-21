@@ -4,59 +4,33 @@ import { Task } from "@/db/schema";
 import { Colors } from "../types/Project";
 import { useState } from "react";
 
-const lightnessIndex: { [key: string]: number } = {
-  "01": 40,
-  "02": 46,
-  "03": 52,
-  "04": 58,
-  "05": 64,
-  "06": 70,
-  "07": 76,
-  "08": 82,
-  "09": 88,
-  "10": 40,
-  "11": 46,
-  "12": 52,
-  "13": 58,
-  "14": 64,
-  "15": 70,
-  "16": 76,
-  "17": 82,
-  "18": 88,
-  "19": 40,
-  "20": 46,
-  "21": 52,
-  "22": 58,
-  "23": 64,
-  "24": 70,
-  "25": 76,
-  "26": 82,
-  "27": 88,
-  "28": 40,
-  "29": 46,
-  "30": 52,
-  "31": 58,
-};
+const lightnessIndex: Array<Number> = [
+  58, 70, 64, 82, 58, 40, 52, 76, 46, 70, 82, 52, 46, 58, 76, 40, 88, 64, 88,
+  40, 64, 52, 46, 76, 82, 58, 70, 46, 70, 76, 82,
+];
 
 const generateBrickColors = (tasks: Task[], colors: Colors) => {
-  const colorIndex: { [key: number]: string } = {
-    0: colors.color1,
-    1: colors.color2,
-    2: colors.color3,
-    3: colors.color1,
-    4: colors.color2,
-    5: colors.color3,
-    6: colors.color1,
-  };
+  const colorIndex: Array<String> = [
+    colors.color1,
+    colors.color2,
+    colors.color3,
+    colors.color1,
+    colors.color2,
+    colors.color3,
+    colors.color1,
+  ];
+
   const brickColors = tasks.map((task) => {
     if (task.isCompleted && task.completedAt) {
-      const monthDay = task.completedAt.split("-")[2].split(" ")[0];
+      const monthDay = parseInt(task.completedAt.split("-")[2].split(" ")[0]);
       const weekday = new Date(task.completedAt as string).getDay();
       const color = colorIndex[weekday];
       const matchResult = color.match(/\d+/g)!;
       const [hue, saturation] = matchResult;
 
-      const colorVariation = `hsl(${hue}, ${saturation}%, ${lightnessIndex[monthDay]}%)`;
+      const colorVariation = `hsl(${hue}, ${saturation}%, ${
+        lightnessIndex[monthDay + 1]
+      }%)`;
 
       return { taskID: task.id, color: colorVariation };
     } else {
